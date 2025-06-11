@@ -1,0 +1,11 @@
+.dark-mode .card .card-header{
+    background-color: #042a46!important;
+}
+
+.dark-mode .card .card-body{
+    background-color: #001d31!important;
+}
+
+.dark-mode .navbar{
+  background-color: #001625!important;
+}

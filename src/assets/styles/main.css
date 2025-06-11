@@ -1,0 +1,87 @@
+body.dark-mode{
+  background-color: #001625!important;
+}
+
+.bg-dark{
+  background-color: #001625!important;
+}
+
+.bg-sec-dark{
+  background-color: #042a46!important;
+}
+
+.bg-content-dark{
+  background-color: #001d31!important;
+}
+
+.truncate-2{
+  max-width: 200px;
+  -webkit-line-clamp: 2;
+  /* autoprefixer: off */
+  -webkit-box-orient: vertical;
+  /* autoprefixer: on */
+  overflow: hidden!important;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+}
+
+
+
+.category-title{
+  max-width: 800px;
+  margin: 0 auto 0 auto;
+}
+
+.category-con{
+  max-width: 800px;
+  margin: 0 auto 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.company-category{
+  cursor: pointer;
+  background-color: #ffffff;
+  width: calc(100% / 3 - 4px);
+  min-height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 3px solid #dee2e6;
+  font-weight: bold;
+}
+
+.company-category:hover{
+  background-color: #e6e6e6;
+}
+
+.company-category i{
+  font-size: 24px;
+}
+
+
+
+.tool-btn{
+  width: calc(100% / 5 / 5);
+  padding: 0;
+  font-size: 16px;
+}
+
+.chart-wrapper{
+  margin: 0 auto 0 auto;
+  width: 100%;
+}
+
+.tr-danger td{
+  background-color: #e42f2f;
+  color: #ffffff;
+}
+
+
+.card .card-header{
+  font-size: 24px;
+  padding: 16px 12px;
+}
