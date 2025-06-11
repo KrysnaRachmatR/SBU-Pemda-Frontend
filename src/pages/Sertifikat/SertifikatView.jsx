@@ -114,13 +114,14 @@ const SertifikatView = () => {
             <tbody>
               {tableData.map((item, index) => (
                 <tr key={index}>
-                  <td>{item.KBLI}</td>
-                  <td>{item.name}</td>
-                  <td>{item.NPWP}</td>
-                  <td>{item.NIB}</td>
-                  <td>{item.Kota}</td>
-                  <td>{item.Subklasifikasi}</td>
-                  <td style={{maxWidth:"350px"}}>{item.address}</td>
+                  <td>{item.kbli}</td>
+                  <td>{item.nama_perusahaan}</td>
+                  <td>{item.npwp}</td>
+                  <td>{item.nib}</td>
+                  <td>{item.kota}</td>
+                  <td>{item.subklasifikasi}</td>
+                  <td style={{ maxWidth: "350px", whiteSpace: "normal" }}>{item.alamat}</td>
+                  <td>{item.status}</td>
                 </tr>
               ))}
             </tbody>

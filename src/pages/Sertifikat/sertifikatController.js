@@ -2,72 +2,42 @@ import { getSertifikatData } from './sertifikatService';
 
 export const fetchSertifikat = async (setChartData, setTableData) => {
   try {
-    // const data = await getSertifikatData();
+    const data = await getSertifikatData(); // data = response.data.data dari API
 
-    const data = [
-      {
-        "KBLI" : "41011",
-        "name" : "CV Kwan Kreatif",
-        "NPWP" : "03.296.253.2-702.000",
-        "NIB" : "8120016293314",
-        "Kota" : "Malang",
-        "Subklasifikasi" : "Teknologi",
-        "address": "Dusun Sunsung, Kel. Saing Rambi, Kec. Sambas, Kab. Sambas, Prov. Kalimantan Barat"
-      },
-      {
-        "KBLI" : "41011",
-        "name" : "CV Kwan Kreatif",
-        "NPWP" : "03.296.253.2-702.000",
-        "NIB" : "8120016293314",
-        "Kota" : "Malang",
-        "Subklasifikasi" : "Teknologi",
-        "address": "Dusun Sunsung, Kel. Saing Rambi, Kec. Sambas, Kab. Sambas, Prov. Kalimantan Barat"
-      },
-      {
-        "KBLI" : "41011",
-        "name" : "CV Kwan Kreatif",
-        "NPWP" : "03.296.253.2-702.000",
-        "NIB" : "8120016293314",
-        "Kota" : "Malang",
-        "Subklasifikasi" : "Teknologi",
-        "address": "Dusun Sunsung, Kel. Saing Rambi, Kec. Sambas, Kab. Sambas, Prov. Kalimantan Barat"
-      },
-      {
-        "KBLI" : "41011",
-        "name" : "CV Kwan Kreatif",
-        "NPWP" : "03.296.253.2-702.000",
-        "NIB" : "8120016293314",
-        "Kota" : "Malang",
-        "Subklasifikasi" : "Teknologi",
-        "address": "Dusun Sunsung, Kel. Saing Rambi, Kec. Sambas, Kab. Sambas, Prov. Kalimantan Barat"
-      },
-    ]
+    // Format untuk table
+    const tableData = data.map(item => ({
+      KBLI: item.sub_klasifikasi.flatMap(sub => sub.kblis.map(kbli => kbli.kode_kbli)).join(', '),
+      name: item.nama_perusahaan,
+      NPWP: item.npwp,
+      NIB: item.nib,
+      Kota: item.kota_kabupaten,
+      Subklasifikasi: item.sub_klasifikasi.map(sub => sub.nama_sub_klasifikasi).join(', '),
+      address: item.alamat
+    }));
 
-    const datas = [
-      { "kategori": "Pelatihan", "jumlah": 20 },
-      { "kategori": "Seminar", "jumlah": 15 },
-      { "kategori": "Workshop", "jumlah": 10 },
-      { "kategori": "Seminar", "jumlah": 15 },
-      { "kategori": "Workshop", "jumlah": 10 },
-      { "kategori": "Seminar", "jumlah": 15 },
-      { "kategori": "Workshop", "jumlah": 10 },
-    ]
+    // Hitung jumlah perusahaan per kota untuk chart
+    const kotaCount = {};
+    data.forEach(item => {
+      const kota = item.kota_kabupaten || 'Lainnya';
+      kotaCount[kota] = (kotaCount[kota] || 0) + 1;
+    });
 
-    // Format chart data
     const chartData = {
-      labels: datas.map(item => item.kategori),
+      labels: Object.keys(kotaCount),
       datasets: [
         {
-          label: 'Jumlah',
-          data: datas.map(item => item.jumlah),
-          backgroundColor: ['#9747ff', '#fca997', '#b91293', '#c3e1ff', '#fb4e22', '#f3a8e2', '#ffd8a3'],
-        },
-      ],
+          label: 'Jumlah Perusahaan',
+          data: Object.values(kotaCount),
+          backgroundColor: '#0d6efd'
+        }
+      ]
     };
 
+    // Set hasil ke state
+    setTableData(tableData);
     setChartData(chartData);
-    setTableData(data);
+    
   } catch (error) {
-    console.error('Gagal ambil data sertifikat', error);
+    console.error('Gagal ambil data sertifikat:', error);
   }
 };

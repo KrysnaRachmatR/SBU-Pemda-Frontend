@@ -3,8 +3,8 @@ import { loginService } from './loginService';
 
 export const login = async (credentials) => {
   try {
-    // const response = await loginService(credentials);
-    // setToken(response.token);
+    const response = await loginService(credentials);
+    setToken(response.token);
     setToken("contoh-token-hahaha")
     return true;
   } catch (error) {
