@@ -9,7 +9,7 @@ import {
 } from './sertifikatService';
 
 /**
- * Fetch semua data sertifikat dan format untuk tabel & chart
+ * Fetch all sertifikat data and format for table & chart
  */
 export const fetchSertifikat = async (setChartData, setTableData) => {
   try {
@@ -53,7 +53,7 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
 
     setChartData(chartData);
   } catch (error) {
-    console.error('Gagal memuat data sertifikat:', error);
+    console.error('Failed to load sertifikat data:', error);
     setTableData([]);
     setChartData({
       labels: [],
@@ -63,83 +63,89 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
 };
 
 /**
- * Post data anggota baru ke server
+ * Post new anggota data to the server
  */
 export const postAnggotaHandler = async (data) => {
   try {
     const response = await postAnggota(data);
     return response;
   } catch (error) {
-    console.error('Gagal menyimpan anggota:', error);
+    console.error('Failed to save anggota:', error);
     throw error;
   }
 };
 
 /**
- * Fetch kota/kabupaten untuk dropdown
+ * Fetch kota/kabupaten for dropdown
  */
 export const fetchKotaKabupaten = async (setKotaOptions) => {
   try {
     const data = await getKotaKabupaten();
     setKotaOptions(data);
   } catch (error) {
-    console.error('Gagal mengambil kota/kabupaten:', error);
+    console.error('Failed to fetch kota/kabupaten:', error);
     setKotaOptions([]);
   }
 };
 
 /**
- * Fetch seluruh subklasifikasi
+ * Fetch all subklasifikasi
  */
 export const fetchAllSubKlasifikasi = async (setSubKlasifikasiOptions) => {
   try {
     const data = await getSubKlasifikasi();
     setSubKlasifikasiOptions(data);
   } catch (error) {
-    console.error('Gagal mengambil semua subklasifikasi:', error);
+    console.error('Failed to fetch all subklasifikasi:', error);
     setSubKlasifikasiOptions([]);
   }
 };
 
 /**
- * Fetch subklasifikasi berdasarkan filter klasifikasi dan tahun
+ * Fetch klasifikasi options for dropdown
  */
-export const fetchSubKlasifikasiByFilter = async (
-  klasifikasi_id,
-  tahun,
-  setFilteredOptions
-) => {
+export const fetchKlasifikasi = async (setOptions) => {
   try {
-    const data = await getSubKlasifikasi({ klasifikasi_id, tahun });
-    setFilteredOptions(data);
+    const response = await getKlasifikasi();
+    const mapped = response.map((item) => ({
+      value: item.id,
+      label: item.nama,
+    }));
+    setOptions(mapped);
   } catch (error) {
-    console.error('Gagal mengambil subklasifikasi dengan filter:', error);
-    setFilteredOptions([]);
+    console.error('Failed to fetch klasifikasi:', error);
   }
 };
 
 /**
- * Fetch seluruh klasifikasi untuk dropdown
+ * Fetch subklasifikasi based on klasifikasi and year filter
  */
-export const fetchKlasifikasi = async (setKlasifikasiOptions) => {
+export const fetchSubKlasifikasiByFilter = async (klasifikasiId, tahun, setOptions) => {
   try {
-    const data = await getKlasifikasi();
-    setKlasifikasiOptions(data);
+    const response = await getSubKlasifikasi({ klasifikasi_id: klasifikasiId, tahun });
+    const mapped = response.map((item) => ({
+      value: item.id,
+      label: item.nama,
+    }));
+    setOptions(mapped);
   } catch (error) {
-    console.error('Gagal mengambil klasifikasi:', error);
-    setKlasifikasiOptions([]);
+    console.error('Failed to fetch sub klasifikasi:', error);
   }
 };
 
 /**
- * Fetch tahun subklasifikasi untuk dropdown
+ * Fetch tahun subklasifikasi based on klasifikasi_id
  */
-export const fetchTahunSubKlasifikasi = async (setTahunOptions) => {
+export const fetchTahunSubKlasifikasi = async (klasifikasi_id, setTahunOptions) => {
   try {
-    const data = await getTahunSubKlasifikasi();
-    setTahunOptions(data);
+    const data = await getTahunSubKlasifikasi(klasifikasi_id);
+    const mapped = data.map((tahun) => ({
+      value: tahun,
+      label: tahun,
+    }));
+    setTahunOptions(mapped);
   } catch (error) {
-    console.error('Gagal mengambil tahun subklasifikasi:', error);
+    console.error('Failed to fetch tahun sub klasifikasi:', error);
     setTahunOptions([]);
   }
 };

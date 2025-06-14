@@ -8,7 +8,7 @@ import {
   fetchTahunSubKlasifikasi
 } from './sertifikatController';
 
-import { Modal, FloatingLabel, Form, Button, Pagination } from 'react-bootstrap';
+import { Modal, FloatingLabel, Form, Button } from 'react-bootstrap';
 import { useConfirm } from '../../components/ConfirmProvider';
 import Select from 'react-select';
 import { Doughnut } from 'react-chartjs-2';
@@ -20,19 +20,19 @@ ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 const SertifikatView = () => {
   const { confirm } = useConfirm();
 
+  // --- State ---
   const [tahunOptions, setTahunOptions] = useState([]);
   const [selectedTahun, setSelectedTahun] = useState('');
   const [kotaOptions, setKotaOptions] = useState([]);
   const [klasifikasiOptions, setKlasifikasiOptions] = useState([]);
   const [filteredSubKlasifikasiOptions, setFilteredSubKlasifikasiOptions] = useState([]);
-  const [selectedKlasifikasiId, setSelectedKlasifikasiId] = useState(null);
+  const [selectedKlasifikasiId, setSelectedKlasifikasiId] = useState('');
+  const [selectedSubKlasifikasiIds, setSelectedSubKlasifikasiIds] = useState([]);
 
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [tableData, setTableData] = useState([]);
 
   const [showAdd, setShowAdd] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-
   const [formData, setFormData] = useState({
     nama_perusahaan: '',
     nama_penanggung_jawab: '',
@@ -46,30 +46,50 @@ const SertifikatView = () => {
     sub_klasifikasi_ids: [],
   });
 
+  // --- Modal Handlers ---
   const handleCloseAdd = () => setShowAdd(false);
   const handleShowAdd = () => setShowAdd(true);
-  const handleCloseEdit = () => setShowEdit(false);
   const handleShowEdit = () => setShowEdit(true);
+  const handleCloseEdit = () => setShowEdit(false);
+  const [showEdit, setShowEdit] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  const totalPages = Math.ceil(tableData.length / itemsPerPage);
-  const currentData = tableData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+  // --- Handler Form ---
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleMultiSelectChange = (selectedOptions) => {
-    const ids = selectedOptions.map((option) => option.value);
+    const ids = selectedOptions ? selectedOptions.map(option => option.value) : [];
     setFormData(prev => ({ ...prev, sub_klasifikasi_ids: ids }));
+    setSelectedSubKlasifikasiIds(ids); // Update selected sub klasifikasi ids
   };
 
-  const subOptions = filteredSubKlasifikasiOptions.map((sub) => ({
-    value: sub.id,
-    label: sub.nama_sub_klasifikasi,
-  }));
+  const handleKlasifikasiChange = async (e) => {
+    const klasifikasiId = e.target.value;
+    setSelectedKlasifikasiId(klasifikasiId);
+    setFormData(prev => ({ ...prev, sub_klasifikasi_ids: [] }));
+    setSelectedTahun('');
+    setFilteredSubKlasifikasiOptions([]);
+
+    if (klasifikasiId) {
+      await fetchTahunSubKlasifikasi(klasifikasiId, setTahunOptions);
+    } else {
+      setTahunOptions([]);
+    }
+  };
+
+  const handleTahunChange = async (e) => {
+    const tahun = e.target.value;
+    setSelectedTahun(tahun);
+    setFormData(prev => ({ ...prev, sub_klasifikasi_ids: [] }));
+
+    if (selectedKlasifikasiId && tahun) {
+      await fetchSubKlasifikasiByFilter(selectedKlasifikasiId, tahun, setFilteredSubKlasifikasiOptions);
+    } else {
+      setFilteredSubKlasifikasiOptions([]);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -84,36 +104,58 @@ const SertifikatView = () => {
       kota_kabupaten_id: '',
       sub_klasifikasi_ids: [],
     });
-    setSelectedKlasifikasiId(null);
+    setSelectedKlasifikasiId('');
     setSelectedTahun('');
     setFilteredSubKlasifikasiOptions([]);
+    setSelectedSubKlasifikasiIds([]);
   };
 
+  // --- Submit Form ---
   const handleSaveAdd = async () => {
-    confirm({
-      message: 'Apakah kamu yakin ingin menyimpan data ini?',
-      onYes: async () => {
-        try {
-          await postAnggotaHandler(formData);
-          handleCloseAdd();
-          resetForm();
-          await fetchSertifikat(setChartData, setTableData);
-        } catch (error) {
-          console.error('Gagal menyimpan data:', error);
-        }
-      },
-      onNo: () => {},
-    });
-  };
+  if (formData.sub_klasifikasi_ids.length === 0) {
+    alert('Please select at least one sub klasifikasi.');
+    return;
+  }
+  confirm({
+    message: 'Apakah kamu yakin ingin menyimpan data ini?',
+    onYes: async () => {
+      try {
+        await postAnggotaHandler(formData);
+        handleCloseAdd();
+        resetForm();
+        await fetchSertifikat(setChartData, setTableData);
+      } catch (error) {
+        console.error('Gagal menyimpan data:', error);
+        alert(`Failed to save data: ${error.message || 'Server error'}`);
+      }
+    },
+  });
+};
 
   const handleSaveEdit = () => {
     confirm({
       message: 'Apakah kamu yakin ingin menyimpan perubahan?',
-      onYes: () => handleCloseEdit(),
-      onNo: () => {},
+      onYes: () => {
+        handleCloseEdit();
+      },
     });
   };
 
+  // --- Fetch Data on Mount ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await fetchSertifikat(setChartData, setTableData);
+        await fetchKotaKabupaten(setKotaOptions);
+        await fetchKlasifikasi(setKlasifikasiOptions);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // --- Chart Options ---
   const chartOptions = {
     plugins: {
       datalabels: {
@@ -122,7 +164,7 @@ const SertifikatView = () => {
           const total = data.reduce((sum, val) => sum + val, 0);
           const percentage = ((value / total) * 100).toFixed(1);
           const label = context.chart.data.labels[context.dataIndex];
-          return `${value} (${percentage}%)`;
+          return `${label}: ${value} (${percentage}%)`;
         },
         color: '#fff',
         font: { weight: 'bold', size: 14 },
@@ -133,37 +175,7 @@ const SertifikatView = () => {
     maintainAspectRatio: false,
   };
 
-  useEffect(() => {
-    fetchSertifikat(setChartData, setTableData);
-    fetchKotaKabupaten(setKotaOptions);
-    fetchKlasifikasi(setKlasifikasiOptions);
-    fetchTahunSubKlasifikasi(setTahunOptions);
-  }, []);
-
-  useEffect(() => {
-    if (selectedKlasifikasiId && selectedTahun) {
-      fetchSubKlasifikasiByFilter(
-        selectedKlasifikasiId,
-        selectedTahun,
-        setFilteredSubKlasifikasiOptions
-      );
-    }
-  }, [selectedKlasifikasiId, selectedTahun]);
-
-const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'bottom',
-    },
-    tooltip: {
-      enabled: true,
-    },
-  },
-};
-
-
+  // --- Render ---
   return (
     <>
       <div className="mb-4 w-100 d-flex justify-content-end align-items-center gap-3">
@@ -173,15 +185,14 @@ const options = {
       </div>
 
       <div className="row">
+        {/* Chart */}
         <div className="col-12 col-md-4 mb-3">
           <div className="card h-100">
-            <div className="card-header text-center fw-bold">
-              Diagram Anggota per Sub Klasifikasi
-            </div>
+            <div className="card-header text-center fw-bold">Diagram Anggota per Sub Klasifikasi</div>
             <div className="card-body d-flex align-items-center justify-content-center">
               <div className="chart-wrapper w-100" style={{ height: '250px' }}>
-                {chartData && chartData.datasets?.length ? (
-                  <Doughnut data={chartData} options={options} />
+                {chartData.datasets.length ? (
+                  <Doughnut data={chartData} options={chartOptions} />
                 ) : (
                   <p className="text-center">Memuat grafik...</p>
                 )}
@@ -190,6 +201,7 @@ const options = {
           </div>
         </div>
 
+        {/* Table */}
         <div className="col-12 col-md-8">
           <div className="card">
             <div className="card-header text-center fw-bold">Data Sertifikat</div>
@@ -210,7 +222,7 @@ const options = {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentData.length ? currentData.map((item, index) => (
+                    {tableData.length ? tableData.slice(0, 5).map((item, index) => (
                       <tr key={index}>
                         <td>{item.kbli}</td>
                         <td>{item.kode_sub_klasifikasi}</td>
@@ -230,23 +242,11 @@ const options = {
                   </tbody>
                 </table>
               </div>
-              <div className="d-flex justify-content-end mt-3">
-                <Pagination>
-                  <Pagination.Prev onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} />
-                  {[...Array(totalPages)].map((_, i) => (
-                    <Pagination.Item key={i} active={i + 1 === currentPage} onClick={() => setCurrentPage(i + 1)}>
-                      {i + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} />
-                </Pagination>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal Tambah Anggota */}
       {/* Modal Tambah Anggota */}
       <Modal show={showAdd} onHide={handleCloseAdd}>
         <Modal.Header closeButton>
@@ -278,6 +278,7 @@ const options = {
             <Form.Control name="tanggal_pendaftaran" type="date" value={formData.tanggal_pendaftaran} onChange={handleChange} />
           </FloatingLabel>
 
+          {/* Kota/Kabupaten */}
           <FloatingLabel label="Pilih Kota/Kabupaten" className="mb-3">
             <Form.Select
               name="kota_kabupaten_id"
@@ -293,41 +294,50 @@ const options = {
             </Form.Select>
           </FloatingLabel>
 
+          {/* Klasifikasi */}
           <FloatingLabel label="Pilih Klasifikasi" className="mb-3">
-            <Form.Select
-              value={selectedKlasifikasiId || ''}
-              onChange={(e) => setSelectedKlasifikasiId(parseInt(e.target.value))}
-            >
-              <option value="">-- Pilih --</option>
+            <Form.Select value={selectedKlasifikasiId} onChange={handleKlasifikasiChange}>
+              <option value="">-- Pilih Klasifikasi --</option>
               {klasifikasiOptions.map((klas) => (
-                <option key={klas.id} value={klas.id}>
-                  {klas.nama}
+                <option key={klas.value} value={klas.value}>
+                  {klas.label}
                 </option>
               ))}
             </Form.Select>
           </FloatingLabel>
 
+          {/* Tahun Sub Klasifikasi */}
           <FloatingLabel label="Pilih Tahun Sub Klasifikasi" className="mb-3">
             <Form.Select
               value={selectedTahun}
-              onChange={(e) => setSelectedTahun(parseInt(e.target.value))}
+              onChange={handleTahunChange}
+              disabled={!selectedKlasifikasiId}
             >
               <option value="">-- Pilih Tahun --</option>
               {tahunOptions.map((tahun) => (
-                <option key={tahun} value={tahun}>
-                  {tahun}
+                <option key={tahun.value} value={tahun.value}>
+                  {tahun.label}
                 </option>
               ))}
             </Form.Select>
           </FloatingLabel>
 
+          {/* Sub Klasifikasi */}
           <div className="mb-3">
             <label className="form-label fw-bold">Pilih Sub Klasifikasi</label>
             <Select
               isMulti
-              options={subOptions}
+              options={filteredSubKlasifikasiOptions}
               onChange={handleMultiSelectChange}
-              value={subOptions.filter(opt => formData.sub_klasifikasi_ids.includes(opt.value))}
+              value={filteredSubKlasifikasiOptions.filter((opt) =>
+                formData.sub_klasifikasi_ids.includes(opt.value)
+              )}
+              isDisabled={filteredSubKlasifikasiOptions.length === 0}
+              placeholder={
+                selectedKlasifikasiId && selectedTahun
+                  ? 'Pilih sub klasifikasi'
+                  : 'Silakan pilih klasifikasi dan tahun dulu'
+              }
             />
           </div>
         </Modal.Body>
@@ -340,11 +350,10 @@ const options = {
           </Button>
         </Modal.Footer>
       </Modal>
+
       {/* Modal Edit Placeholder */}
       <Modal show={showEdit} onHide={handleCloseEdit} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Subklasifikasi</Modal.Title>
-        </Modal.Header>
+        <Modal.Header closeButton><Modal.Title>Edit Subklasifikasi</Modal.Title></Modal.Header>
         <Modal.Body>
           <p>Form edit masih placeholder. Bisa dikembangkan sesuai kebutuhan.</p>
         </Modal.Body>

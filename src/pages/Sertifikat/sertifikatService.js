@@ -76,23 +76,23 @@ export const getKlasifikasi = async () => {
   }
 };
 
-// ✅ Ambil daftar tahun sub klasifikasi
-export const getTahunSubKlasifikasi = async () => {
+// ✅ Ambil daftar tahun sub klasifikasi berdasarkan klasifikasi_id
+export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
   try {
     const token = getToken();
-    const response = await axios.get(`${API_URL}/cok`, {
+    const response = await axios.get(`${API_URL}/sub-klasifikasi/tahun/${klasifikasi_id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
     });
-
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Gagal mengambil tahun sub klasifikasi:', error);
     return [];
   }
 };
+
 
 // ✅ Ambil daftar sub klasifikasi (filter: klasifikasi_id & tahun)
 export const getSubKlasifikasi = async (params = {}) => {
