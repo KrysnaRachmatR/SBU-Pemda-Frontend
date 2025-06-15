@@ -86,6 +86,7 @@ export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
         Accept: 'application/json',
       },
     });
+    console.log('Response tahun sub klasifikasi:', response.data);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Gagal mengambil tahun sub klasifikasi:', error);
@@ -98,7 +99,7 @@ export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
 export const getSubKlasifikasi = async (params = {}) => {
   try {
     const token = getToken();
-    const response = await axios.get(`${API_URL}/sub-klasifikasi`, {
+    const response = await axios.get(`${API_URL}/hamput/${tahun}/${klasifikasi_id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
