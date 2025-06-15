@@ -94,19 +94,18 @@ export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
   }
 };
 
-
 // ✅ Ambil daftar sub klasifikasi (filter: klasifikasi_id & tahun)
-export const getSubKlasifikasi = async (params = {}) => {
+export const getSubKlasifikasi = async (klasifikasi_id, tahun) => {
   try {
+    console.log('Fetching sub klasifikasi with:', { klasifikasi_id, tahun });
     const token = getToken();
-    const response = await axios.get(`${API_URL}/hamput/${tahun}/${klasifikasi_id}`, {
+    const response = await axios.get(`${API_URL}/sub-klasifikasi/${tahun}/${klasifikasi_id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
       },
-      params,
     });
-
+    console.log('Response sub klasifikasi:', response);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Gagal mengambil sub klasifikasi:', error);
@@ -130,4 +129,18 @@ export const getKotaKabupaten = async () => {
     console.error('Gagal mengambil data kota/kabupaten:', error);
     return [];
   }
+};
+
+// ✅ Ambil download sertifikat data sebagai file Excel
+export const downloadSertifikatDataService = async () => {
+  const token = getToken();
+  const response = await axios.get(`${API_URL}/export/anggota/excel`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    },
+    responseType: 'blob',
+  });
+
+  return response.data; // hanya kembalikan blob-nya
 };

@@ -6,6 +6,7 @@ import {
   getTahunSubKlasifikasi,
   getKotaKabupaten,
   postAnggota,
+  downloadSertifikatDataService,
 } from './sertifikatService';
 
 /**
@@ -36,9 +37,13 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
     const values = chartRaw.map((item) => item.jumlah_anggota);
 
     const backgroundColors = [
-      '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
-      '#858796', '#fd7e14', '#20c997', '#6610f2', '#6f42c1',
-    ];
+    '#E6FFE6', '#DFFFE2', '#D0F0C0', '#B2F2BB', '#A8E6A1', 
+    '#90EE90', '#98FB98', '#80E5AA', '#77DD77', '#66DDAA', 
+    '#4FC47F', '#3CB371', '#50C878', '#2ECC71', '#29AB87', 
+    '#0BDA51', '#2E8B57', '#1C7C54', '#228B22', '#4F7942', 
+    '#556B2F', '#3B5323', '#355E3B', '#006400', '#013220' 
+  ];
+
 
     const chartData = {
       labels,
@@ -122,11 +127,12 @@ export const fetchKlasifikasi = async (setOptions) => {
  */
 export const fetchSubKlasifikasiByFilter = async (klasifikasiId, tahun, setOptions) => {
   try {
-    const response = await getSubKlasifikasi({ klasifikasi_id: klasifikasiId, tahun });
+    const response = await getSubKlasifikasi(klasifikasiId, tahun);
     const mapped = response.map((item) => ({
       value: item.id,
       label: item.nama,
     }));
+    console.log('Mapped sub klasifikasi:', mapped);
     setOptions(mapped);
   } catch (error) {
     console.error('Failed to fetch sub klasifikasi:', error);
@@ -147,5 +153,25 @@ export const fetchTahunSubKlasifikasi = async (klasifikasi_id, setTahunOptions) 
   } catch (error) {
     console.error('Failed to fetch tahun sub klasifikasi:', error);
     setTahunOptions([]);
+  }
+};
+
+/**
+ * Fetch Download Sertifikat Data
+ */
+export const handleDownloadSertifikat = async () => {
+  try {
+    const blob = await downloadSertifikatDataService();
+    const url = window.URL.createObjectURL(new Blob([blob]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'anggota.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Gagal mengunduh file Excel:', error);
+    alert('Gagal mengunduh file Excel.');
   }
 };

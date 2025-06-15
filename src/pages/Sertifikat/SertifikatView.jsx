@@ -5,10 +5,11 @@ import {
   fetchKotaKabupaten,
   fetchSubKlasifikasiByFilter,
   fetchKlasifikasi,
-  fetchTahunSubKlasifikasi
+  fetchTahunSubKlasifikasi,
+  handleDownloadSertifikat,
 } from './sertifikatController';
 
-import { Modal, FloatingLabel, Form, Button } from 'react-bootstrap';
+import { Modal, FloatingLabel, Form, Button, Pagination } from 'react-bootstrap';
 import { useConfirm } from '../../components/ConfirmProvider';
 import Select from 'react-select';
 import { Doughnut } from 'react-chartjs-2';
@@ -28,11 +29,12 @@ const SertifikatView = () => {
   const [filteredSubKlasifikasiOptions, setFilteredSubKlasifikasiOptions] = useState([]);
   const [selectedKlasifikasiId, setSelectedKlasifikasiId] = useState('');
   const [selectedSubKlasifikasiIds, setSelectedSubKlasifikasiIds] = useState([]);
-
+  
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [tableData, setTableData] = useState([]);
 
   const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [formData, setFormData] = useState({
     nama_perusahaan: '',
     nama_penanggung_jawab: '',
@@ -46,12 +48,16 @@ const SertifikatView = () => {
     sub_klasifikasi_ids: [],
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(tableData.length / itemsPerPage);
+
   // --- Modal Handlers ---
   const handleCloseAdd = () => setShowAdd(false);
   const handleShowAdd = () => setShowAdd(true);
-  const handleShowEdit = () => setShowEdit(true);
   const handleCloseEdit = () => setShowEdit(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const handleShowEdit = () => setShowEdit(true);
 
   // --- Handler Form ---
   const handleChange = (e) => {
@@ -62,7 +68,7 @@ const SertifikatView = () => {
   const handleMultiSelectChange = (selectedOptions) => {
     const ids = selectedOptions ? selectedOptions.map(option => option.value) : [];
     setFormData(prev => ({ ...prev, sub_klasifikasi_ids: ids }));
-    setSelectedSubKlasifikasiIds(ids); // Update selected sub klasifikasi ids
+    setSelectedSubKlasifikasiIds(ids);
   };
 
   const handleKlasifikasiChange = async (e) => {
@@ -112,25 +118,25 @@ const SertifikatView = () => {
 
   // --- Submit Form ---
   const handleSaveAdd = async () => {
-  if (formData.sub_klasifikasi_ids.length === 0) {
-    alert('Please select at least one sub klasifikasi.');
-    return;
-  }
-  confirm({
-    message: 'Apakah kamu yakin ingin menyimpan data ini?',
-    onYes: async () => {
-      try {
-        await postAnggotaHandler(formData);
-        handleCloseAdd();
-        resetForm();
-        await fetchSertifikat(setChartData, setTableData);
-      } catch (error) {
-        console.error('Gagal menyimpan data:', error);
-        alert(`Failed to save data: ${error.message || 'Server error'}`);
-      }
-    },
-  });
-};
+    if (formData.sub_klasifikasi_ids.length === 0) {
+      alert('Please select at least one sub klasifikasi.');
+      return;
+    }
+    confirm({
+      message: 'Apakah kamu yakin ingin menyimpan data ini?',
+      onYes: async () => {
+        try {
+          await postAnggotaHandler(formData);
+          handleCloseAdd();
+          resetForm();
+          await fetchSertifikat(setChartData, setTableData);
+        } catch (error) {
+          console.error('Gagal menyimpan data:', error);
+          alert(`Failed to save data: ${error.message || 'Server error'}`);
+        }
+      },
+    });
+  };
 
   const handleSaveEdit = () => {
     confirm({
@@ -139,6 +145,14 @@ const SertifikatView = () => {
         handleCloseEdit();
       },
     });
+  };
+
+  const fetchDownloadSertifikat = async () => {
+    try {
+      await handleDownloadSertifikat();
+    } catch (error) {
+      alert('Gagal mengunduh file Excel.');
+    }
   };
 
   // --- Fetch Data on Mount ---
@@ -175,6 +189,10 @@ const SertifikatView = () => {
     maintainAspectRatio: false,
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
+
   // --- Render ---
   return (
     <>
@@ -182,15 +200,18 @@ const SertifikatView = () => {
         <button className="btn tool-btn btn-sm btn-primary"><i className="bi bi-info-lg"></i></button>
         <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}><i className="bi bi-pencil"></i></button>
         <button className="btn tool-btn btn-sm btn-primary" onClick={handleShowAdd}>+</button>
+        <button className="btn tool-btn btn-sm btn-primary" onClick={fetchDownloadSertifikat}><i className="bi bi-download"></i></button>
       </div>
 
       <div className="row">
         {/* Chart */}
-        <div className="col-12 col-md-4 mb-3">
+       <div className="col-12 col-md-4 mb-3">
           <div className="card h-100">
-            <div className="card-header text-center fw-bold">Diagram Anggota per Sub Klasifikasi</div>
+            <div className="card-header text-center fw-bold">
+              Diagram Anggota per Sub Klasifikasi
+            </div>
             <div className="card-body d-flex align-items-center justify-content-center">
-              <div className="chart-wrapper w-100" style={{ height: '250px' }}>
+              <div className="chart-wrapper" style={{ width: '100%', height: '300px' }}>
                 {chartData.datasets.length ? (
                   <Doughnut data={chartData} options={chartOptions} />
                 ) : (
@@ -200,7 +221,6 @@ const SertifikatView = () => {
             </div>
           </div>
         </div>
-
         {/* Table */}
         <div className="col-12 col-md-8">
           <div className="card">
@@ -222,7 +242,7 @@ const SertifikatView = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {tableData.length ? tableData.slice(0, 5).map((item, index) => (
+                    {currentItems.length ? currentItems.map((item, index) => (
                       <tr key={index}>
                         <td>{item.kbli}</td>
                         <td>{item.kode_sub_klasifikasi}</td>
@@ -254,7 +274,7 @@ const SertifikatView = () => {
         </Modal.Header>
         <Modal.Body>
           <FloatingLabel label="Nama Perusahaan" className="mb-3">
-            <Form.Control name="nama_perusahaan" value={formData.nama_perusahaan} onChange={handleChange} />
+            <Form.Control name="nama_perusahaan" value={formData.nama_perusahaan} onChange={handleChange} required />
           </FloatingLabel>
           <FloatingLabel label="Penanggung Jawab" className="mb-3">
             <Form.Control name="nama_penanggung_jawab" value={formData.nama_penanggung_jawab} onChange={handleChange} />
@@ -327,7 +347,9 @@ const SertifikatView = () => {
             <label className="form-label fw-bold">Pilih Sub Klasifikasi</label>
             <Select
               isMulti
-              options={filteredSubKlasifikasiOptions}
+              options={filteredSubKlasifikasiOptions.filter(
+                (opt) => !formData.sub_klasifikasi_ids.includes(opt.value)
+              )}
               onChange={handleMultiSelectChange}
               value={filteredSubKlasifikasiOptions.filter((opt) =>
                 formData.sub_klasifikasi_ids.includes(opt.value)
@@ -362,6 +384,57 @@ const SertifikatView = () => {
           <Button variant="primary" onClick={handleSaveEdit}>Simpan</Button>
         </Modal.Footer>
       </Modal>
+
+      <div className="w-100 d-flex justify-content-end mt-3">
+        <Pagination>
+          <Pagination.Prev
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(prev => prev - 1)}
+          />
+
+          {/* Tampilkan halaman pertama */}
+          <Pagination.Item
+            active={currentPage === 1}
+            onClick={() => setCurrentPage(1)}
+          >
+            {1}
+          </Pagination.Item>
+
+          {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
+          {currentPage > 3 && <Pagination.Ellipsis disabled />}
+          {[...Array(totalPages)].slice(1, -1).map((_, i) => {
+            const page = i + 2;
+            if (Math.abs(currentPage - page) <= 1) {
+              return (
+                <Pagination.Item
+                  key={page}
+                  active={currentPage === page}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Pagination.Item>
+              );
+            }
+            return null;
+          })}
+          {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
+
+          {/* Tampilkan halaman terakhir jika lebih dari 1 */}
+          {totalPages > 1 && (
+            <Pagination.Item
+              active={currentPage === totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+            >
+              {totalPages}
+            </Pagination.Item>
+          )}
+
+          <Pagination.Next
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(prev => prev + 1)}
+          />
+        </Pagination>
+      </div>
     </>
   );
 };
