@@ -69,12 +69,7 @@ export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
 export const getSubKlasifikasi = async (klasifikasi_id, tahun) => {
   try {
     const token = getToken();
-    const response = await axios.get(`${API_URL}/sub-klasifikasi`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+    const response = await api.get(`/sub-klasifikasi`);
     console.log('Response sub klasifikasi:', response);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
@@ -98,7 +93,7 @@ export const getKotaKabupaten = async () => {
 // ✅ Ambil download sertifikat data sebagai file Excel
 export const downloadSertifikatDataService = async () => {
   const token = getToken();
-  const response = await axios.get(`${API_URL}/export/anggota/excel`, {
+  const response = await api.get(`/export/anggota/excel`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
