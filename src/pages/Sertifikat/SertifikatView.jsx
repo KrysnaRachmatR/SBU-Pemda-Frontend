@@ -253,7 +253,17 @@ const SertifikatView = () => {
                         <td>{item.subklasifikasi}</td>
                         <td style={{ maxWidth: '200px', whiteSpace: 'normal' }}>{item.alamat}</td>
                         <td className="text-center">
-                          <span className={`badge ${item.status === 'aktif' ? 'bg-success' : 'bg-danger'}`}>{item.status}</span>
+                          <span
+                            className={`badge ${
+                              item.status === 'aktif'
+                                ? 'bg-success'
+                                : item.status === 'pending'
+                                ? 'bg-warning text-dark'
+                                : 'bg-danger'
+                            }`}
+                          >
+                            {item.status}
+                          </span>
                         </td>
                       </tr>
                     )) : (

@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { fetchSertifikat } from './periodeController';
+import {
+  fetchSertifikat,
+  fetchAnggotaStatus,
+  fetchPeriode,
+  fetchAllAnggota, // ✅ Tambahkan ini
+  fetchAnggotaSubKlasifikasiList, // ✅ Tambahkan ini juga
+} from './periodeController';
+
 import { Modal, FloatingLabel, Form, Button } from 'react-bootstrap';
 import { useConfirm } from '../../components/ConfirmProvider';
 
@@ -16,42 +23,66 @@ const PeriodeView = () => {
   const [tableData, setTableData] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [anggotaList, setAnggotaList] = useState([]);
+  const [subKlasifikasiList, setSubKlasifikasiList] = useState([]);
+  const [selectedAnggotaId, setSelectedAnggotaId] = useState('');
+
+  const [formData, setFormData] = useState({
+    anggota_id: '',
+    sub_klasifikasi_id: '',
+    tanggal_pendaftaran: '',
+  });
 
   const handleCloseAdd = () => setShowAdd(false);
   const handleShowAdd = () => setShowAdd(true);
   const handleCloseEdit = () => setShowEdit(false);
   const handleShowEdit = () => setShowEdit(true);
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAnggotaChange = async (e) => {
+    const anggotaId = e.target.value;
+    setSelectedAnggotaId(anggotaId);
+    setFormData((prev) => ({ ...prev, anggota_id: anggotaId }));
+
+    const list = await fetchAnggotaSubKlasifikasiList(anggotaId);
+    setSubKlasifikasiList(list);
+    };
+
   const handleSaveAdd = () => {
     confirm({
       message: 'Apakah kamu yakin ingin menyimpan data ini?',
-      onYes: () => {
-        handleCloseAdd()
+      onYes: async () => {
+        const { anggota_id, ...payload } = formData;
+
+        if (!anggota_id || !payload.sub_klasifikasi_id || !payload.tanggal_pendaftaran) {
+          alert('Semua kolom wajib diisi.');
+          return;
+        }
+
+        const result = await fetchPeriode(anggota_id, payload, setShowAdd);
+
+        if (result.success) {
+          fetchAnggotaStatus(setTableData);
+        } else {
+          console.error('Gagal:', result.message);
+          alert(result.message);
+        }
       },
-      onNo: () => {
-        console.log('Batal simpan');
-      }
+      onNo: () => console.log('Batal simpan'),
     });
   };
 
   const handleSaveEdit = () => {
     confirm({
       message: 'Apakah kamu yakin ingin menyimpan data ini?',
-      onYes: () => {
-        handleCloseEdit()
-      },
-      onNo: () => {
-        console.log('Batal simpan');
-      }
+      onYes: () => handleCloseEdit(),
+      onNo: () => console.log('Batal simpan'),
     });
   };
-
-  function parseDateDMY(dateStr) {
-    const [day, month, year] = dateStr.split('-');
-    // bulan di JS Date dimulai dari 0 (Januari = 0)
-    return new Date(year, month - 1, day);
-  }
-
 
   const options = {
     plugins: {
@@ -60,8 +91,6 @@ const PeriodeView = () => {
           const data = context.chart.data.datasets[0].data;
           const total = data.reduce((sum, val) => sum + val, 0);
           const percentage = ((value / total) * 100).toFixed(1);
-          
-          const label = context.chart.data.labels[context.dataIndex];
           return `${value} (${percentage}%)`;
         },
         color: '#fff',
@@ -76,28 +105,51 @@ const PeriodeView = () => {
     },
   };
 
+  const parseDateDMY = (dateStr) => {
+  if (!dateStr) return '-';
+  const [day, month, year] = dateStr.split('-');
+  return new Date(year, month - 1, day);
+};
+
+
   useEffect(() => {
-    fetchSertifikat(setChartData, setTableData);
+    fetchSertifikat(setChartData);
+    fetchAnggotaStatus(setTableData);
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const anggota = await fetchAllAnggota();
+      setAnggotaList(anggota);
+    };
+    loadData();
   }, []);
 
   return (
     <>
       <div className="mb-4 w-100 d-flex justify-content-end align-items-center gap-3">
-        <button className="btn tool-btn btn-sm btn-primary"><i className="bi bi-info-lg"></i></button>
-        <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}><i className="bi bi-pencil"></i></button>
-        <button className="btn tool-btn btn-sm btn-primary" onClick={handleShowAdd}>+</button>
+        <button className="btn tool-btn btn-sm btn-primary">
+          <i className="bi bi-info-lg"></i>
+        </button>
+        <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}>
+          <i className="bi bi-pencil"></i>
+        </button>
+        <button className="btn tool-btn btn-sm btn-primary" onClick={handleShowAdd}>
+          +
+        </button>
       </div>
+
       <div className="row">
         {/* Chart Doughnut */}
         <div className="col-md-4">
           <div className="card">
-            <div className="card-header text-center fw-bold">Subklasifikasi</div>
+            <div className="card-header text-center fw-bold">Status Anggota - Sub Klasifikasi</div>
             <div className="card-body">
-              <div className='chart-wrapper'>
-                {chartData?.datasets ? (
+              <div className="chart-wrapper">
+                {chartData?.datasets && chartData.datasets[0].data.reduce((a, b) => a + b, 0) > 0 ? (
                   <Doughnut data={chartData} options={options} />
                 ) : (
-                  <p>Memuat grafik...</p>
+                  <p className="text-center">Tidak ada data untuk ditampilkan.</p>
                 )}
               </div>
             </div>
@@ -111,15 +163,13 @@ const PeriodeView = () => {
               <tr>
                 <th>Nama Pelaku Usaha</th>
                 <th>Masa Berlaku SBU</th>
+                <th>Tahun KBLI</th>
+                <th>KBLI</th>
+                <th>Klasifikasi</th>
+                <th>Sub Klasifikasi</th>
               </tr>
             </thead>
             <tbody>
-              {/* {tableData.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.nama}</td>
-                  <td>{item.date}</td>
-                </tr>
-              ))} */}
               {tableData.map((item, index) => {
                 const now = new Date();
                 const itemDate = parseDateDMY(item.date);
@@ -128,65 +178,72 @@ const PeriodeView = () => {
                 return (
                   <tr
                     key={index}
-                    className={isExpired ? 'tr-danger' : ''}
+                    className={
+                      item.status?.toLowerCase().trim() === 'pending'
+                        ? 'table-warning'
+                        : isExpired
+                        ? 'table-danger'
+                        : ''
+                    }
                   >
                     <td>{item.nama}</td>
                     <td>{item.date}</td>
+                    <td>{item.tahun}</td>
+                    <td>{item.kbli}</td>
+                    <td>{item.klasifikasi}</td>
+                    <td>{item.subKlasifikasi}</td>
                   </tr>
                 );
               })}
-
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* Modal Tambah */}
       <Modal show={showAdd} onHide={handleCloseAdd} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Tambah Masa berlaku SBU</Modal.Title>
+          <Modal.Title>Tambah Masa Berlaku SBU</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="Nama Pelaku Usaha"
-            className="mb-3"
-          >
-            <Form.Control type="text" placeholder="m" />
-          </FloatingLabel>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="NPWP"
-            className="mb-3"
-          >
-            <Form.Control type="text" placeholder="m" />
-          </FloatingLabel>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="NIB"
-            className="mb-3"
-          >
-            <Form.Control type="text" placeholder="m" />
-          </FloatingLabel>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="Kota / Kabupaten"
-            className="mb-3"
-          >
-            <Form.Control type="text" placeholder="m" />
-          </FloatingLabel>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="Subklasifikasi"
-            className="mb-3"
-          >
-            <Form.Control type="text" placeholder="m" />
+          <FloatingLabel controlId="floatingAnggotaId" label="Pilih Nama Perusahaan" className="mb-3">
+            <Form.Select
+              name="anggota_id"
+              value={formData.anggota_id}
+              onChange={handleAnggotaChange}
+            >
+              <option value="">-- Pilih Anggota --</option>
+              {anggotaList.map((anggota) => (
+                <option key={anggota.id} value={anggota.id}>
+                  {anggota.nama_perusahaan}
+                </option>
+              ))}
+            </Form.Select>
           </FloatingLabel>
 
+          <FloatingLabel controlId="floatingSubKlasifikasiId" label="Pilih Sub Klasifikasi" className="mb-3">
+            <Form.Select
+              name="sub_klasifikasi_id"
+              value={formData.sub_klasifikasi_id}
+              onChange={handleInputChange}
+              disabled={!formData.anggota_id}
+            >
+              <option value="">-- Pilih Sub Klasifikasi --</option>
+              {subKlasifikasiList.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.nama_sub_klasifikasi}
+                </option>
+              ))}
+            </Form.Select>
+          </FloatingLabel>
+          <FloatingLabel controlId="floatingTanggal" label="Tanggal Pendaftaran" className="mb-3">
+            <Form.Control
+              type="date"
+              name="tanggal_pendaftaran"
+              value={formData.tanggal_pendaftaran}
+              onChange={handleInputChange}
+            />
+          </FloatingLabel>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary me-auto" onClick={handleCloseAdd}>
@@ -198,28 +255,18 @@ const PeriodeView = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Modal Edit (belum difungsikan penuh) */}
       <Modal show={showEdit} onHide={handleCloseEdit} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Tambah Masa berlaku SBU</Modal.Title>
+          <Modal.Title>Edit Masa Berlaku SBU</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="Nama Pelaku Usaha"
-            className="mb-3"
-          >
-            <Form.Control type="text" placeholder="m" />
+          <FloatingLabel controlId="floatingNamaEdit" label="Nama Pelaku Usaha" className="mb-3">
+            <Form.Control type="text" placeholder="Nama" />
           </FloatingLabel>
-          
-          <FloatingLabel
-            controlId="floatingInput"
-            label="Masa berlaku SBU"
-            className="mb-3"
-          >
-            <Form.Control type="date" placeholder="06/07/2005" />
+          <FloatingLabel controlId="floatingTanggalEdit" label="Masa Berlaku SBU" className="mb-3">
+            <Form.Control type="date" />
           </FloatingLabel>
-
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary me-auto" onClick={handleCloseEdit}>

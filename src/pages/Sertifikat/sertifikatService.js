@@ -1,4 +1,5 @@
 import api from '../../services/api';
+import { getToken } from '../../utils/auth';
 
 // ✅ Ambil data anggota (tabel)
 export const getSertifikatData = async () => {
@@ -27,7 +28,8 @@ export const getAnggotaPerKlasifikasi = async () => {
 // ✅ Simpan data anggota baru
 export const postAnggota = async (data) => {
   try {
-    const response = await axiosapipost(`/add-anggota`, data, {
+    const token = getToken();
+    const response = await api.post(`/add-anggota`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
@@ -69,7 +71,7 @@ export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
 export const getSubKlasifikasi = async (klasifikasi_id, tahun) => {
   try {
     const token = getToken();
-    const response = await api.get(`/sub-klasifikasi`);
+    const response = await api.get(`/sub-klasifikasi/${tahun}/${klasifikasi_id}`);
     console.log('Response sub klasifikasi:', response);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
