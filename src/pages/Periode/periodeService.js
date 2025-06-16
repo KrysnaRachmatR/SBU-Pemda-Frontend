@@ -1,6 +1,6 @@
-import axios from 'axios';
+import api from "../../services/api";
 
 export const getSertifikatData = async () => {
-  const response = await axios.get('/api/sertifikat');
+  const response = await api.get('/sertifikat');
   return response.data;
 };

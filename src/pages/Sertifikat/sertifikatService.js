@@ -1,18 +1,9 @@
-import axios from 'axios';
-import { API_URL } from '../../utils/constant';
-
-const getToken = () => localStorage.getItem('token');
+import api from '../../services/api';
 
 // ✅ Ambil data anggota (tabel)
 export const getSertifikatData = async () => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/anggota`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+    const response = await api.get(`/anggota`);
 
     return Array.isArray(response.data.data) ? response.data.data : [];
   } catch (error) {
@@ -24,13 +15,7 @@ export const getSertifikatData = async () => {
 // ✅ Ambil data diagram anggota per sub klasifikasi (untuk chart)
 export const getAnggotaPerKlasifikasi = async () => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/diagram-subklasifikasi-anggota`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+    const response = await api.get(`/diagram-subklasifikasi-anggota`);
 
     return Array.isArray(response.data.data) ? response.data.data : [];
   } catch (error) {
@@ -42,8 +27,7 @@ export const getAnggotaPerKlasifikasi = async () => {
 // ✅ Simpan data anggota baru
 export const postAnggota = async (data) => {
   try {
-    const token = getToken();
-    const response = await axios.post(`${API_URL}/add-anggota`, data, {
+    const response = await axiosapipost(`/add-anggota`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
@@ -61,13 +45,7 @@ export const postAnggota = async (data) => {
 // ✅ Ambil daftar klasifikasi
 export const getKlasifikasi = async () => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/klasifikasi`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+    const response = await api.get(`/klasifikasi`);
 
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
@@ -79,13 +57,7 @@ export const getKlasifikasi = async () => {
 // ✅ Ambil daftar tahun sub klasifikasi berdasarkan klasifikasi_id
 export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/sub-klasifikasi/tahun/${klasifikasi_id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+    const response = await api.get(`/sub-klasifikasi/tahun/${klasifikasi_id}`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Gagal mengambil tahun sub klasifikasi:', error);
@@ -97,8 +69,7 @@ export const getTahunSubKlasifikasi = async (klasifikasi_id) => {
 // ✅ Ambil daftar sub klasifikasi (filter: klasifikasi_id & tahun)
 export const getSubKlasifikasi = async (params = {}) => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/sub-klasifikasi`, {
+    const response = await api.get(`/sub-klasifikasi`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
@@ -116,13 +87,7 @@ export const getSubKlasifikasi = async (params = {}) => {
 // ✅ Ambil daftar kota/kabupaten
 export const getKotaKabupaten = async () => {
   try {
-    const token = getToken();
-    const response = await axios.get(`${API_URL}/kota-kabupaten`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+    const response = await api.get(`/kota-kabupaten`);
 
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
