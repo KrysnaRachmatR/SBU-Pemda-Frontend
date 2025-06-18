@@ -49,7 +49,7 @@ export const getKlasifikasi = async () => {
   try {
     const response = await api.get(`/klasifikasi`);
 
-    return Array.isArray(response.data) ? response.data : [];
+    return Array.isArray(response.data.data) ? response.data.data : [];
   } catch (error) {
     console.error('Gagal mengambil klasifikasi:', error);
     return [];
