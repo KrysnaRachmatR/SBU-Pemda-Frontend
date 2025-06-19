@@ -12,9 +12,9 @@ import {
 /**
  * Fetch all sertifikat data and format for table & chart
  */
-export const fetchSertifikat = async (setChartData, setTableData) => {
+export const fetchSertifikat = async (setChartData, setTableData, search = '') => {
   try {
-    const raw = await getSertifikatData();
+    const raw = await getSertifikatData(search);
 
     const flattened = (raw || []).flatMap((anggota) =>
       (anggota.sub_klasifikasi || []).map((sub) => ({
@@ -23,6 +23,7 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
         nib: anggota.nib,
         kota: anggota.kota_kabupaten,
         alamat: anggota.alamat,
+        nama_klasifikasi: sub.nama_klasifikasi,
         kode_sub_klasifikasi: sub.kode_sub_klasifikasi,
         subklasifikasi: sub.nama_sub_klasifikasi,
         kbli: (sub.kblis || []).map((k) => k.kode_kbli).join(', '),
@@ -35,6 +36,8 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
     const chartRaw = await getAnggotaPerKlasifikasi();
     const labels = chartRaw.map((item) => item.nama_sub_klasifikasi);
     const values = chartRaw.map((item) => item.jumlah_anggota);
+    const sbuCode = chartRaw.map((item) => item.kode_sub_klasifikasi);
+    const sbuClass = chartRaw.map((item) => item.nama_klasifikasi);
 
     // const backgroundColors = [
     //   '#E6FFE6', '#DFFFE2', '#D0F0C0', '#B2F2BB', '#A8E6A1', 
@@ -67,6 +70,8 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
           hoverOffset: 10,
         },
       ],
+      sbuCode,
+      sbuClass
     };
 
     setChartData(chartData);
@@ -76,6 +81,8 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
     setChartData({
       labels: [],
       datasets: [{ data: [], backgroundColor: [] }],
+      sbuCode: [],
+      sbuClass: [],
     });
   }
 };

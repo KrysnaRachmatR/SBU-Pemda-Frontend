@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   fetchSertifikat,
   postAnggotaHandler,
@@ -9,7 +10,7 @@ import {
   handleDownloadSertifikat,
 } from './sertifikatController';
 
-import { Modal, FloatingLabel, Form, Button, Pagination } from 'react-bootstrap';
+import { Dropdown, Badge, Modal, Col, FloatingLabel, Form, Button, Pagination, InputGroup, FormControl } from 'react-bootstrap';
 import { useConfirm } from '../../components/ConfirmProvider';
 import Select from 'react-select';
 import { Doughnut } from 'react-chartjs-2';
@@ -19,6 +20,9 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 const SertifikatView = () => {
+  const navigate = useNavigate();
+  const [filterParams] = useSearchParams();
+
   const { confirm } = useConfirm();
 
   // --- State ---
@@ -30,8 +34,11 @@ const SertifikatView = () => {
   const [selectedKlasifikasiId, setSelectedKlasifikasiId] = useState('');
   const [selectedSubKlasifikasiIds, setSelectedSubKlasifikasiIds] = useState([]);
   
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+  const [chartData, setChartData] = useState({ labels: [], datasets: [], sbuCode: [], sbuClass: [] });
   const [tableData, setTableData] = useState([]);
+
+  const [queryFilter, setQueryFilter] = useState(null);
+  const [querySearch, setQuery] = useState('');
 
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -51,7 +58,6 @@ const SertifikatView = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(tableData.length / itemsPerPage);
 
   // --- Modal Handlers ---
   const handleCloseAdd = () => setShowAdd(false);
@@ -155,8 +161,17 @@ const SertifikatView = () => {
     }
   };
 
+  // handle search table
+
+  // if use serverside render
+  // const handleSearch = async () => {
+  //   await fetchSertifikat(setChartData, setTableData, querySearch);
+  // };
+
+
   // --- Fetch Data on Mount ---
   useEffect(() => {
+    setQueryFilter(filterParams.get('filter'));
     const fetchData = async () => {
       try {
         await fetchSertifikat(setChartData, setTableData);
@@ -192,12 +207,67 @@ const SertifikatView = () => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
+  // const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const onSelectFilter = (value) => {
+    if (value) {
+      setQueryFilter(value);
+      navigate(`/sbu?filter=${encodeURIComponent(value)}`);
+    }
+  }
+
+  const clearFilter = () => {
+    setQueryFilter(null);
+    navigate('/sbu');
+  };
+
+  // client side search & filter
+  const filteredData = queryFilter
+  ? tableData.filter(item => item.nama_klasifikasi.toLowerCase() === queryFilter.toLowerCase())
+  : tableData;
+
+  const searchedData = filteredData.filter(item =>
+    item.kode_sub_klasifikasi.toLowerCase().includes(querySearch.toLowerCase()) ||
+    item.nama_perusahaan.toLowerCase().includes(querySearch.toLowerCase()) ||
+    item.npwp.toLowerCase().includes(querySearch.toLowerCase()) ||
+    item.nib.toLowerCase().includes(querySearch.toLowerCase())
+  );
+  const currentItems = searchedData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(searchedData.length / itemsPerPage);
 
   // --- Render ---
   return (
     <>
-      <div className="mb-4 w-100 d-flex justify-content-end align-items-center gap-3">
+      <div className="mb-4 w-100 d-flex justify-content-end gap-3">
+        {!queryFilter ? (
+          <Dropdown>
+            <Dropdown.Toggle variant="primary" size="sm" className="filter-btn-sm">
+              <i className="bi bi-funnel"></i>
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              {klasifikasiOptions.map((item, index) => (
+                <Dropdown.Item
+                  key={index}
+                  onClick={() => onSelectFilter(item.label)}
+                >
+                  {item.label}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+        ) : (
+          <Badge
+            bg="primary"
+            className="filter-badge"
+            style={{ cursor: 'pointer'}}
+            onClick={clearFilter}
+          >
+            {queryFilter} &nbsp;
+            <i className="bi bi-x-circle-fill"></i>
+          </Badge>
+        )}
         <button className="btn tool-btn btn-sm btn-primary"><i className="bi bi-info-lg"></i></button>
         <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}><i className="bi bi-pencil"></i></button>
         <button className="btn tool-btn btn-sm btn-primary" onClick={handleShowAdd}>+</button>
@@ -245,142 +315,211 @@ const SertifikatView = () => {
         </div>
         {/* Table */}
         <div className="col-12 col-md-8">
-          <div className="card">
-            <div className="card-header text-center fw-bold">Data Sertifikat</div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-bordered table-striped mb-0">
-                  <thead className="table-dark text-center">
-                    <tr>
-                      <th>KBLI</th>
-                      <th>Kode SBU</th>
-                      <th>Nama Usaha</th>
-                      <th>NPWP</th>
-                      <th>NIB</th>
-                      <th>Kabupaten/Kota</th>
-                      <th>Subklasifikasi</th>
-                      <th>Alamat</th>
-                      <th>Status</th>
+            <InputGroup className="p-3 border border-bottom-0 rounded-top">
+
+                <FormControl
+                  placeholder="Cari Nama Usaha / NPWP / NIB"
+                  value={querySearch}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+
+                {/* if use serverside render */}
+                {/* <Button variant="primary" onClick={handleSearch}>
+                  Cari
+                </Button> */}
+
+            </InputGroup>
+            <div className="table-responsive">
+              <table className="table table-bordered table-striped mb-0">
+                <thead className="table-dark text-center">
+                  <tr>
+                    <th>KBLI</th>
+                    <th>Kode SBU</th>
+                    <th>Nama Usaha</th>
+                    <th>NPWP</th>
+                    <th>NIB</th>
+                    <th>Kabupaten/Kota</th>
+                    <th>Subklasifikasi</th>
+                    {/* <th>Alamat</th> */}
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.length ? currentItems.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.kbli}</td>
+                      <td>{item.kode_sub_klasifikasi}</td>
+                      <td className="single-line">{item.nama_perusahaan}</td>
+                      <td className="single-line">{item.npwp}</td>
+                      <td>{item.nib}</td>
+                      <td>{item.kota}</td>
+                      <td><span className="truncate-2"> {item.subklasifikasi}</span></td>
+                      {/* <td style={{ maxWidth: '200px', whiteSpace: 'normal' }}>{item.alamat}</td> */}
+                      {/* <td><span className="truncate-2"> {item.alamat}</span></td> */}
+                      <td className="text-center" style={{verticalAlign:'middle'}}>
+                        <span
+                          className={`badge ${
+                            item.status === 'aktif'
+                              ? 'bg-success'
+                              : item.status === 'pending'
+                              ? 'bg-warning text-dark'
+                              : 'bg-danger'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {currentItems.length ? currentItems.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.kbli}</td>
-                        <td>{item.kode_sub_klasifikasi}</td>
-                        <td>{item.nama_perusahaan}</td>
-                        <td>{item.npwp}</td>
-                        <td>{item.nib}</td>
-                        <td>{item.kota}</td>
-                        <td>{item.subklasifikasi}</td>
-                        <td style={{ maxWidth: '200px', whiteSpace: 'normal' }}>{item.alamat}</td>
-                        <td className="text-center">
-                          <span
-                            className={`badge ${
-                              item.status === 'aktif'
-                                ? 'bg-success'
-                                : item.status === 'pending'
-                                ? 'bg-warning text-dark'
-                                : 'bg-danger'
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        </td>
-                      </tr>
-                    )) : (
-                      <tr><td colSpan="9" className="text-center">Tidak ada data.</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                  )) : (
+                    <tr><td colSpan="9" className="text-center">Tidak ada data.</td></tr>
+                  )}
+                </tbody>
+              </table>
 
-                {/* pagination */}
-                <div className="w-100 d-flex justify-content-end mt-3">
-                  <Pagination>
-                    <Pagination.Prev
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage(prev => prev - 1)}
-                    />
+              {/* pagination */}
+              <div className="w-100 d-flex justify-content-end mt-3">
+                <Pagination className='mb-0'>
+                  <Pagination.Prev
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => prev - 1)}
+                  />
 
-                    {/* Tampilkan halaman pertama */}
+                  {/* Tampilkan halaman pertama */}
+                  <Pagination.Item
+                    active={currentPage === 1}
+                    onClick={() => setCurrentPage(1)}
+                  >
+                    {1}
+                  </Pagination.Item>
+                  {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
+                  {currentPage > 3 && <Pagination.Ellipsis disabled />}
+                  {[...Array(totalPages)].slice(1, -1).map((_, i) => {
+                    const page = i + 2;
+                    if (Math.abs(currentPage - page) <= 1) {
+                      return (
+                        <Pagination.Item
+                          key={page}
+                          active={currentPage === page}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Pagination.Item>
+                      );
+                    }
+                    return null;
+                  })}
+                  {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
+
+                  {/* Tampilkan halaman terakhir jika lebih dari 1 */}
+                  {totalPages > 1 && (
                     <Pagination.Item
-                      active={currentPage === 1}
-                      onClick={() => setCurrentPage(1)}
+                      active={currentPage === totalPages}
+                      onClick={() => setCurrentPage(totalPages)}
                     >
-                      {1}
+                      {totalPages}
                     </Pagination.Item>
+                  )}
 
-                    {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
-                    {currentPage > 3 && <Pagination.Ellipsis disabled />}
-                    {[...Array(totalPages)].slice(1, -1).map((_, i) => {
-                      const page = i + 2;
-                      if (Math.abs(currentPage - page) <= 1) {
-                        return (
-                          <Pagination.Item
-                            key={page}
-                            active={currentPage === page}
-                            onClick={() => setCurrentPage(page)}
-                          >
-                            {page}
-                          </Pagination.Item>
-                        );
-                      }
-                      return null;
-                    })}
-                    {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
-
-                    {/* Tampilkan halaman terakhir jika lebih dari 1 */}
-                    {totalPages > 1 && (
-                      <Pagination.Item
-                        active={currentPage === totalPages}
-                        onClick={() => setCurrentPage(totalPages)}
-                      >
-                        {totalPages}
-                      </Pagination.Item>
-                    )}
-
-                    <Pagination.Next
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                    />
-                  </Pagination>
-                </div>
+                  <Pagination.Next
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                  />
+                </Pagination>
               </div>
             </div>
-          </div>
         </div>
       </div>
 
       {/* Modal Tambah Anggota */}
-      <Modal show={showAdd} onHide={handleCloseAdd}>
+      <Modal show={showAdd} onHide={handleCloseAdd} size='xl'>
         <Modal.Header closeButton>
           <Modal.Title>Tambah Anggota</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <FloatingLabel label="Nama Perusahaan" className="mb-3">
+
+          <div className='row'>
+            <Col>
+              <FloatingLabel label="Nama Perusahaan" className="mb-3">
+                <Form.Control placeholder='-' name="nama_perusahaan" value={formData.nama_perusahaan} onChange={handleChange} required />
+              </FloatingLabel>
+            </Col>
+            <Col>
+              <FloatingLabel label="Penanggung Jawab" className="mb-3">
+                <Form.Control placeholder='-' name="nama_penanggung_jawab" value={formData.nama_penanggung_jawab} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+          </div>
+
+          <div className='row'>
+            <Col>
+              <FloatingLabel label="Email" className="mb-3">
+                <Form.Control placeholder='-' name="email" type="email" value={formData.email} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+            <Col>
+              <FloatingLabel label="No. Telp" className="mb-3">
+                <Form.Control placeholder='-' name="no_telp" value={formData.no_telp} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+          </div>
+
+          <div className='row'>
+            <Col>
+              <FloatingLabel label="NPWP" className="mb-3">
+                <Form.Control placeholder='-' name="npwp" value={formData.npwp} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+            <Col>
+              <FloatingLabel label="NIB" className="mb-3">
+                <Form.Control placeholder='-' name="nib" value={formData.nib} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+          </div>
+
+          <div className='row'>
+            <Col>
+              <FloatingLabel label="Alamat" className="mb-3">
+                <Form.Control placeholder='-' name="alamat" value={formData.alamat} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+            <Col>
+              <FloatingLabel label="Tanggal Pendaftaran" className="mb-3">
+                <Form.Control placeholder='-' name="tanggal_pendaftaran" type="date" value={formData.tanggal_pendaftaran} onChange={handleChange} />
+              </FloatingLabel>
+            </Col>
+          </div>
+
+          <div className='row'>
+
+          </div>
+          
+          {/* <FloatingLabel label="Nama Perusahaan" className="mb-3">
             <Form.Control name="nama_perusahaan" value={formData.nama_perusahaan} onChange={handleChange} required />
           </FloatingLabel>
           <FloatingLabel label="Penanggung Jawab" className="mb-3">
             <Form.Control name="nama_penanggung_jawab" value={formData.nama_penanggung_jawab} onChange={handleChange} />
           </FloatingLabel>
+
           <FloatingLabel label="Email" className="mb-3">
             <Form.Control name="email" type="email" value={formData.email} onChange={handleChange} />
           </FloatingLabel>
           <FloatingLabel label="No. Telp" className="mb-3">
             <Form.Control name="no_telp" value={formData.no_telp} onChange={handleChange} />
           </FloatingLabel>
+
           <FloatingLabel label="NPWP" className="mb-3">
             <Form.Control name="npwp" value={formData.npwp} onChange={handleChange} />
           </FloatingLabel>
           <FloatingLabel label="NIB" className="mb-3">
             <Form.Control name="nib" value={formData.nib} onChange={handleChange} />
           </FloatingLabel>
+
           <FloatingLabel label="Alamat" className="mb-3">
             <Form.Control name="alamat" value={formData.alamat} onChange={handleChange} />
           </FloatingLabel>
           <FloatingLabel label="Tanggal Pendaftaran" className="mb-3">
             <Form.Control name="tanggal_pendaftaran" type="date" value={formData.tanggal_pendaftaran} onChange={handleChange} />
-          </FloatingLabel>
+          </FloatingLabel> */}
 
           {/* Kota/Kabupaten */}
           <FloatingLabel label="Pilih Kota/Kabupaten" className="mb-3">

@@ -25,6 +25,10 @@ body.dark-mode{
   display: -webkit-box;
 }
 
+.single-line {
+  white-space: nowrap;       
+}
+
 
 
 .category-title{
@@ -43,7 +47,7 @@ body.dark-mode{
 .company-category{
   cursor: pointer;
   background-color: #ffffff;
-  width: calc(100% / 3 - 4px);
+  width: calc(100% / 3 - 8px);
   min-height: 120px;
   display: flex;
   justify-content: center;
@@ -62,6 +66,10 @@ body.dark-mode{
   font-size: 24px;
 }
 
+.company-category.active{
+  background-color: #ffffff!important;
+}
+
 
 
 .tool-btn{
@@ -69,6 +77,22 @@ body.dark-mode{
   padding: 0;
   font-size: 16px;
 }
+
+.filter-btn-sm{
+  width: fit-content;
+  padding: 0 18px;
+  font-size: 16px;
+}
+
+.filter-badge{
+  width: fit-content;
+  padding: 0 12px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .chart-wrapper{
   margin: 0 auto 0 auto;

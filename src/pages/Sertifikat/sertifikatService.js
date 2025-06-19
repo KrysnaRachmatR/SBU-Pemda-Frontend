@@ -2,9 +2,9 @@ import api from '../../services/api';
 import { getToken } from '../../utils/auth';
 
 // ✅ Ambil data anggota (tabel)
-export const getSertifikatData = async () => {
+export const getSertifikatData = async (search) => {
   try {
-    const response = await api.get(`/anggota`);
+    const response = await api.get(`/anggota?search=${search}`);
 
     return Array.isArray(response.data.data) ? response.data.data : [];
   } catch (error) {
