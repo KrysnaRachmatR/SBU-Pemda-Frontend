@@ -178,12 +178,13 @@ const SertifikatView = () => {
           const total = data.reduce((sum, val) => sum + val, 0);
           const percentage = ((value / total) * 100).toFixed(1);
           const label = context.chart.data.labels[context.dataIndex];
-          return `${label}: ${value} (${percentage}%)`;
+          // return `${label}: ${value} (${percentage}%)`;
+          return ``;
         },
         color: '#fff',
         font: { weight: 'bold', size: 14 },
       },
-      legend: { position: 'bottom' },
+      legend: { position: 'bottom', display: false},
     },
     responsive: true,
     maintainAspectRatio: false,
@@ -210,13 +211,34 @@ const SertifikatView = () => {
             <div className="card-header text-center fw-bold">
               Diagram Anggota per Sub Klasifikasi
             </div>
-            <div className="card-body d-flex align-items-center justify-content-center">
-              <div className="chart-wrapper" style={{ width: '100%', height: '300px' }}>
+            <div className="card-body d-flex flex-column align-items-center justify-content-center">
+              <div className="chart-wrapper">
                 {chartData.datasets.length ? (
                   <Doughnut data={chartData} options={chartOptions} />
                 ) : (
                   <p className="text-center">Memuat grafik...</p>
                 )}
+              </div>
+              <div className="mt-3">
+              
+                {/* legend */}
+                {chartData?.labels?.map((label, index) => (
+                  <div key={index} className="d-flex align-items-center mb-2">
+                    <div
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        backgroundColor: chartData.datasets[0].backgroundColor[index] || "#000",
+                        marginRight: '8px',
+                        borderRadius: '4px',
+                      }}
+                    ></div>
+                    <div style={{width:'calc(100% - 24px)'}}>
+                      <span>{label}</span>
+                    </div>
+                  </div>
+                ))}
+
               </div>
             </div>
           </div>
@@ -271,6 +293,58 @@ const SertifikatView = () => {
                     )}
                   </tbody>
                 </table>
+
+                {/* pagination */}
+                <div className="w-100 d-flex justify-content-end mt-3">
+                  <Pagination>
+                    <Pagination.Prev
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(prev => prev - 1)}
+                    />
+
+                    {/* Tampilkan halaman pertama */}
+                    <Pagination.Item
+                      active={currentPage === 1}
+                      onClick={() => setCurrentPage(1)}
+                    >
+                      {1}
+                    </Pagination.Item>
+
+                    {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
+                    {currentPage > 3 && <Pagination.Ellipsis disabled />}
+                    {[...Array(totalPages)].slice(1, -1).map((_, i) => {
+                      const page = i + 2;
+                      if (Math.abs(currentPage - page) <= 1) {
+                        return (
+                          <Pagination.Item
+                            key={page}
+                            active={currentPage === page}
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Pagination.Item>
+                        );
+                      }
+                      return null;
+                    })}
+                    {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
+
+                    {/* Tampilkan halaman terakhir jika lebih dari 1 */}
+                    {totalPages > 1 && (
+                      <Pagination.Item
+                        active={currentPage === totalPages}
+                        onClick={() => setCurrentPage(totalPages)}
+                      >
+                        {totalPages}
+                      </Pagination.Item>
+                    )}
+
+                    <Pagination.Next
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                    />
+                  </Pagination>
+                </div>
               </div>
             </div>
           </div>
@@ -394,57 +468,6 @@ const SertifikatView = () => {
           <Button variant="primary" onClick={handleSaveEdit}>Simpan</Button>
         </Modal.Footer>
       </Modal>
-
-      <div className="w-100 d-flex justify-content-end mt-3">
-        <Pagination>
-          <Pagination.Prev
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(prev => prev - 1)}
-          />
-
-          {/* Tampilkan halaman pertama */}
-          <Pagination.Item
-            active={currentPage === 1}
-            onClick={() => setCurrentPage(1)}
-          >
-            {1}
-          </Pagination.Item>
-
-          {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
-          {currentPage > 3 && <Pagination.Ellipsis disabled />}
-          {[...Array(totalPages)].slice(1, -1).map((_, i) => {
-            const page = i + 2;
-            if (Math.abs(currentPage - page) <= 1) {
-              return (
-                <Pagination.Item
-                  key={page}
-                  active={currentPage === page}
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </Pagination.Item>
-              );
-            }
-            return null;
-          })}
-          {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
-
-          {/* Tampilkan halaman terakhir jika lebih dari 1 */}
-          {totalPages > 1 && (
-            <Pagination.Item
-              active={currentPage === totalPages}
-              onClick={() => setCurrentPage(totalPages)}
-            >
-              {totalPages}
-            </Pagination.Item>
-          )}
-
-          <Pagination.Next
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(prev => prev + 1)}
-          />
-        </Pagination>
-      </div>
     </>
   );
 };

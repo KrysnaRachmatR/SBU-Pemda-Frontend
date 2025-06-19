@@ -72,7 +72,9 @@ body.dark-mode{
 
 .chart-wrapper{
   margin: 0 auto 0 auto;
+  aspect-ratio: 1 / 1;
   width: 100%;
+  height: auto;
 }
 
 .tr-danger td{

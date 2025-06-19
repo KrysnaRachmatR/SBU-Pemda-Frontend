@@ -36,13 +36,26 @@ export const fetchSertifikat = async (setChartData, setTableData) => {
     const labels = chartRaw.map((item) => item.nama_sub_klasifikasi);
     const values = chartRaw.map((item) => item.jumlah_anggota);
 
+    // const backgroundColors = [
+    //   '#E6FFE6', '#DFFFE2', '#D0F0C0', '#B2F2BB', '#A8E6A1', 
+    //   '#90EE90', '#98FB98', '#80E5AA', '#77DD77', '#66DDAA', 
+    //   '#4FC47F', '#3CB371', '#50C878', '#2ECC71', '#29AB87', 
+    //   '#0BDA51', '#2E8B57', '#1C7C54', '#228B22', '#4F7942', 
+    //   '#556B2F', '#3B5323', '#355E3B', '#006400', '#013220' 
+    // ];
+
     const backgroundColors = [
-    '#E6FFE6', '#DFFFE2', '#D0F0C0', '#B2F2BB', '#A8E6A1', 
-    '#90EE90', '#98FB98', '#80E5AA', '#77DD77', '#66DDAA', 
-    '#4FC47F', '#3CB371', '#50C878', '#2ECC71', '#29AB87', 
-    '#0BDA51', '#2E8B57', '#1C7C54', '#228B22', '#4F7942', 
-    '#556B2F', '#3B5323', '#355E3B', '#006400', '#013220' 
-  ];
+      "#9747FF", "#FCA997", "#B91293", "#C3E1FF", "#FB4E22", 
+      "#F3A8E2", "#FFD7A3", "#1ABC9C", "#3498DB", "#2ECC71", 
+      "#E74C3C", "#9B59B6", "#16A085", "#27AE60", "#2980B9", 
+      "#8E44AD", "#D35400", "#E67E22", "#F39C12", "#D91E18", 
+      "#34495E", "#E84393", "#00B894", "#6C5CE7", "#55EFC4",
+      "#FDCB6E", "#00CEC9", "#E17055", "#0984E3", "#FD79A8",
+      "#A29BFE", "#00A8FF", "#FAB1A0", "#7EFFF5", "#B2BEC3",
+      "#636E72", "#BDC581", "#706FD3", "#574B90", "#3B3B98",
+      "#F8EFBA", "#2C3A47", "#218C74", "#D980FA", "#D6A2E8",
+      "#FF9F43", "#C4E538", "#F97F51", "#3DC1D3", "#E58E26"
+    ];
 
 
     const chartData = {
