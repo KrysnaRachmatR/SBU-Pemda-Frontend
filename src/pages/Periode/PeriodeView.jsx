@@ -7,7 +7,7 @@ import {
   fetchAnggotaSubKlasifikasiList, // ✅ Tambahkan ini juga
 } from './periodeController';
 
-import { Modal, FloatingLabel, Form, Button } from 'react-bootstrap';
+import { Modal, FloatingLabel, Form, Button, Pagination, InputGroup, FormControl } from 'react-bootstrap';
 import { useConfirm } from '../../components/ConfirmProvider';
 
 import { Doughnut } from 'react-chartjs-2';
@@ -27,11 +27,17 @@ const PeriodeView = () => {
   const [subKlasifikasiList, setSubKlasifikasiList] = useState([]);
   const [selectedAnggotaId, setSelectedAnggotaId] = useState('');
 
+  const [querySearch, setQuery] = useState('');
+
   const [formData, setFormData] = useState({
     anggota_id: '',
     sub_klasifikasi_id: '',
     tanggal_pendaftaran: '',
   });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const handleCloseAdd = () => setShowAdd(false);
   const handleShowAdd = () => setShowAdd(true);
@@ -125,6 +131,16 @@ const PeriodeView = () => {
     loadData();
   }, []);
 
+  // client side search 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const filteredData = tableData.filter(item =>
+    item.nama.toLowerCase().includes(querySearch.toLowerCase())
+  );
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  
   return (
     <>
       <div className="mb-4 w-100 d-flex justify-content-end align-items-center gap-3">
@@ -158,10 +174,17 @@ const PeriodeView = () => {
 
         {/* Table */}
         <div className="col-md-8">
+          <InputGroup className="p-3 border border-bottom-0 rounded-top">
+              <FormControl
+                placeholder="Cari Nama Perusahaan"
+                value={querySearch}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+          </InputGroup>
           <table className="table table-bordered">
             <thead>
               <tr>
-                <th>Nama Pelaku Usaha</th>
+                <th>Nama Perusahaan</th>
                 <th>Masa Berlaku SBU</th>
                 <th>Tahun KBLI</th>
                 <th>KBLI</th>
@@ -170,7 +193,7 @@ const PeriodeView = () => {
               </tr>
             </thead>
             <tbody>
-              {tableData.map((item, index) => {
+              {currentItems.map((item, index) => {
                 const now = new Date();
                 const itemDate = parseDateDMY(item.date);
                 const isExpired = itemDate <= now;
@@ -186,17 +209,68 @@ const PeriodeView = () => {
                         : ''
                     }
                   >
-                    <td>{item.nama}</td>
-                    <td>{item.date}</td>
+                    <td className="single-line">{item.nama}</td>
+                    <td className="single-line">{item.date}</td>
                     <td>{item.tahun}</td>
                     <td>{item.kbli}</td>
-                    <td>{item.klasifikasi}</td>
+                    <td className="single-line">{item.klasifikasi}</td>
                     <td>{item.subKlasifikasi}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+
+          {/* pagination */}
+          <div className="w-100 d-flex justify-content-end mt-3">
+            <Pagination className='mb-0'>
+              <Pagination.Prev
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+              />
+
+              {/* Tampilkan halaman pertama */}
+              <Pagination.Item
+                active={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+              >
+                {1}
+              </Pagination.Item>
+              {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
+              {currentPage > 3 && <Pagination.Ellipsis disabled />}
+              {[...Array(totalPages)].slice(1, -1).map((_, i) => {
+                const page = i + 2;
+                if (Math.abs(currentPage - page) <= 1) {
+                  return (
+                    <Pagination.Item
+                      key={page}
+                      active={currentPage === page}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Pagination.Item>
+                  );
+                }
+                return null;
+              })}
+              {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
+
+              {/* Tampilkan halaman terakhir jika lebih dari 1 */}
+              {totalPages > 1 && (
+                <Pagination.Item
+                  active={currentPage === totalPages}
+                  onClick={() => setCurrentPage(totalPages)}
+                >
+                  {totalPages}
+                </Pagination.Item>
+              )}
+
+              <Pagination.Next
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              />
+            </Pagination>
+          </div>
         </div>
       </div>
 
