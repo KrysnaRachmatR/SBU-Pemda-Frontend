@@ -48,16 +48,15 @@ export const fetchSertifikat = async (setChartData, setTableData, search = '') =
     // ];
 
     const backgroundColors = [
-      "#9747FF", "#FCA997", "#B91293", "#C3E1FF", "#FB4E22", 
-      "#F3A8E2", "#FFD7A3", "#1ABC9C", "#3498DB", "#2ECC71", 
-      "#E74C3C", "#9B59B6", "#16A085", "#27AE60", "#2980B9", 
-      "#8E44AD", "#D35400", "#E67E22", "#F39C12", "#D91E18", 
-      "#34495E", "#E84393", "#00B894", "#6C5CE7", "#55EFC4",
-      "#FDCB6E", "#00CEC9", "#E17055", "#0984E3", "#FD79A8",
-      "#A29BFE", "#00A8FF", "#FAB1A0", "#7EFFF5", "#B2BEC3",
-      "#636E72", "#BDC581", "#706FD3", "#574B90", "#3B3B98",
-      "#F8EFBA", "#2C3A47", "#218C74", "#D980FA", "#D6A2E8",
-      "#FF9F43", "#C4E538", "#F97F51", "#3DC1D3", "#E58E26"
+      "#18713A", "#2B974B", "#36B252", "#2FA67B", "#27C28E", 
+      "#27D190", "#4DE67C", "#70E85C", "#89E83C", "#A2EC31", 
+      "#B6F12E", "#D2F534", "#D8F668", "#E1FB9A", "#E8FFB1", 
+      "#F2FFB3", "#EDF76C", "#D2D34A", "#8C9626", "#6C7E1C", 
+      "#B6B938", "#CFCB2C", "#E3E13A", "#F3F82D", "#FFE431",
+      "#FFE76C", "#FFEF8F", "#FFF9C4", "#FFFBA2", "#F6E488",
+      "#F5D564", "#FFD847", "#FFD726", "#FFD602", "#FFC300",
+      "#FFB400", "#FFA601", "#FF9900", "#E2A600", "#D0B900",
+      "#AFA51D", "#C8E66D"
     ];
 
 

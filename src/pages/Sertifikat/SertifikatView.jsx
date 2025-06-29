@@ -161,14 +161,6 @@ const SertifikatView = () => {
     }
   };
 
-  // handle search table
-
-  // if use serverside render
-  // const handleSearch = async () => {
-  //   await fetchSertifikat(setChartData, setTableData, querySearch);
-  // };
-
-
   // --- Fetch Data on Mount ---
   useEffect(() => {
     setQueryFilter(filterParams.get('filter'));
@@ -236,21 +228,92 @@ const SertifikatView = () => {
 
   const totalPages = Math.ceil(searchedData.length / itemsPerPage);
 
+  const customSelectStyles = {
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "#001D31",
+    borderColor: "#36434E",
+    color: "#ffffff",
+    boxShadow: state.isFocused ? "0 0 0 1px #90B6D1" : "none",
+    "&:hover": {
+      borderColor: "#90B6D1"
+    }
+  }),
+  option: (base, { isFocused, isSelected }) => ({
+    ...base,
+    backgroundColor: isSelected
+      ? "#90B6D1"
+      : isFocused
+      ? "#011625"
+      : "#001D31",
+    color: isSelected ? "#001625" : "#ffffff",
+    "&:hover": {
+      backgroundColor: "#011625"
+    }
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "#001D31",
+    color: "#ffffff",
+    border: "1px solid #36434E"
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "#011625",
+    color: "#ffffff"
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "#ffffff"
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: "#ffffff",
+    ':hover': {
+      backgroundColor: "#36434E",
+      color: "#ffffff"
+    }
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: "#cccccc"
+  }),
+  input: (base) => ({
+    ...base,
+    color: "#ffffff"
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: "#ffffff"
+  })
+};
+
+
   // --- Render ---
   return (
     <>
-      <div className="mb-4 w-100 d-flex justify-content-end gap-3">
+      <div className="mb-4 w-100 d-flex justify-content-end gap-3 mt-3">
         {!queryFilter ? (
           <Dropdown>
-            <Dropdown.Toggle variant="primary" size="sm" className="filter-btn-sm">
+            <Dropdown.Toggle
+              variant="dark"
+              size="sm"
+              className="filter-btn-sm"
+              style={{
+                backgroundColor: "#011625",
+                border: "1px solid #36434E",
+                color: "#ffffff",
+              }}
+            >
               <i className="bi bi-funnel"></i>
             </Dropdown.Toggle>
 
-            <Dropdown.Menu>
+            <Dropdown.Menu style={{ backgroundColor: "#001D31", color: "#ffffff" }}>
               {klasifikasiOptions.map((item, index) => (
                 <Dropdown.Item
                   key={index}
                   onClick={() => onSelectFilter(item.label)}
+                  style={{ color: "#ffffff" }}
                 >
                   {item.label}
                 </Dropdown.Item>
@@ -260,125 +323,201 @@ const SertifikatView = () => {
         ) : (
           <Badge
             bg="primary"
-            className="filter-badge"
-            style={{ cursor: 'pointer'}}
+            className="filter-btn-sm"
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#011625",
+              color: "#ffffff",
+              border: "1px solid #36434E",
+            }}
             onClick={clearFilter}
           >
             {queryFilter} &nbsp;
             <i className="bi bi-x-circle-fill"></i>
           </Badge>
         )}
-        <button className="btn tool-btn btn-sm btn-primary"><i className="bi bi-info-lg"></i></button>
-        <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}><i className="bi bi-pencil"></i></button>
-        <button className="btn tool-btn btn-sm btn-primary" onClick={handleShowAdd}>+</button>
-        <button className="btn tool-btn btn-sm btn-primary" onClick={fetchDownloadSertifikat}><i className="bi bi-download"></i></button>
+        <button className="btn tool-btn btn-sm btn-primary" 
+          style={{ 
+            backgroundColor: "#90B6D1",
+            color: "#001625",
+            border: "1px solid #36434E", }}
+            >
+              <i className="bi bi-info-lg"></i>
+        </button>
+        <button className="btn tool-btn btn-sm btn-outline-primary" 
+          style={{ 
+            backgroundColor: "#011625",
+            color: "#ffffff",
+            border: "1px solid #36434E" }} onClick={handleShowEdit}
+            >
+              <i className="bi bi-pencil"></i>
+        </button>
+        <button className="btn tool-btn btn-sm btn-primary" style={{ 
+          backgroundColor: "#90B6D1",
+          color: "#001625",
+          border: "1px solid #36434E", }} onClick={handleShowAdd}
+          >+
+        </button>
+        <button className="btn tool-btn btn-sm btn-primary" 
+          style={{  
+            backgroundColor: "#011625",
+            color: "#ffffff",
+            border: "1px solid #36434E" }} onClick={fetchDownloadSertifikat}>
+              <i className="bi bi-download"></i>
+          </button>
       </div>
 
       <div className="row">
         {/* Chart */}
-       <div className="col-12 col-md-4 mb-3">
-          <div className="card h-100">
-            <div className="card-header text-center fw-bold">
-              Diagram Anggota per Sub Klasifikasi
+      <div className="col-12 col-md-4 mb-3">
+        <div
+          className="card h-100"
+          style={{
+            border: '1px solid #36434E',
+            backgroundColor: '#001D31',
+            color: '#fff', // semua teks di dalam card menjadi putih
+          }}
+        >
+          <div
+            className="card-header text-center fw-bold"
+            style={{
+              backgroundColor: '#042A45',
+              color: '#fff',
+              borderBottom: '1px solid #36434E',
+            }}
+          >
+            Diagram Anggota per Sub Klasifikasi
+          </div>
+          <div className="card-body d-flex flex-column align-items-center justify-content-center">
+            <div className="chart-wrapper">
+              {chartData.datasets.length ? (
+                <Doughnut data={chartData} options={chartOptions} />
+              ) : (
+                <p className="text-center">Memuat grafik...</p>
+              )}
             </div>
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <div className="chart-wrapper">
-                {chartData.datasets.length ? (
-                  <Doughnut data={chartData} options={chartOptions} />
-                ) : (
-                  <p className="text-center">Memuat grafik...</p>
-                )}
-              </div>
-              <div className="mt-3">
-              
-                {/* legend */}
-                {chartData?.labels?.map((label, index) => (
-                  <div key={index} className="d-flex align-items-center mb-2">
-                    <div
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        backgroundColor: chartData.datasets[0].backgroundColor[index] || "#000",
-                        marginRight: '8px',
-                        borderRadius: '4px',
-                      }}
-                    ></div>
-                    <div style={{width:'calc(100% - 24px)'}}>
-                      <span>{label}</span>
-                    </div>
+            <div className="mt-3 w-100">
+              {/* legend */}
+              {chartData?.labels?.map((label, index) => (
+                <div key={index} className="d-flex align-items-center mb-2">
+                  <div
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      backgroundColor:
+                        chartData.datasets[0].backgroundColor[index] || '#000',
+                      marginRight: '8px',
+                      borderRadius: '4px',
+                    }}
+                  ></div>
+                  <div style={{ width: 'calc(100% - 24px)', color: '#ffffff' }}>
+                    <span>{label}</span>
                   </div>
-                ))}
-
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
         {/* Table */}
-        <div className="col-12 col-md-8">
-            <InputGroup className="p-3 border border-bottom-0 rounded-top">
-
-                <FormControl
-                  placeholder="Cari Nama Usaha / NPWP / NIB"
-                  value={querySearch}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-
-                {/* if use serverside render */}
-                {/* <Button variant="primary" onClick={handleSearch}>
-                  Cari
-                </Button> */}
-
+        <div className="col-12 col-md-8" style={{ backgroundColor: "#011625" }}>
+           <InputGroup
+              className="p-3 border border-bottom-0 rounded-top custom-input-group"
+              style={{
+                backgroundColor: "#001D31",
+                borderColor: "#36434E"
+              }}
+            >
+             <FormControl
+                placeholder="Cari Nama Usaha / NPWP / NIB"
+                value={querySearch}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{
+                backgroundColor: "#001D31",
+                color: "#fffff",
+                border: "1px solid #36434E",
+                boxShadow: "none",
+                }}
+                className="text-white custom-placeholder-white custom-input"
+              />
             </InputGroup>
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped mb-0">
-                <thead className="table-dark text-center">
-                  <tr>
-                    <th>KBLI</th>
-                    <th>Kode SBU</th>
-                    <th>Nama Usaha</th>
-                    <th>NPWP</th>
-                    <th>NIB</th>
-                    <th>Kabupaten/Kota</th>
-                    <th>Subklasifikasi</th>
-                    {/* <th>Alamat</th> */}
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentItems.length ? currentItems.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.kbli}</td>
-                      <td>{item.kode_sub_klasifikasi}</td>
-                      <td className="single-line">{item.nama_perusahaan}</td>
-                      <td className="single-line">{item.npwp}</td>
-                      <td>{item.nib}</td>
-                      <td>{item.kota}</td>
-                      <td><span className="truncate-2"> {item.subklasifikasi}</span></td>
-                      {/* <td style={{ maxWidth: '200px', whiteSpace: 'normal' }}>{item.alamat}</td> */}
-                      {/* <td><span className="truncate-2"> {item.alamat}</span></td> */}
-                      <td className="text-center" style={{verticalAlign:'middle'}}>
-                        <span
-                          className={`badge ${
-                            item.status === 'aktif'
-                              ? 'bg-success'
-                              : item.status === 'pending'
-                              ? 'bg-warning text-dark'
-                              : 'bg-danger'
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr><td colSpan="9" className="text-center">Tidak ada data.</td></tr>
-                  )}
-                </tbody>
-              </table>
-
+            <div className="table-responsive" style={{ backgroundColor: "#011625" }}>
+              <div style={{
+                  backgroundColor: "#001D31",
+                  border: "1px solid #36434E",
+                  borderRadius: "8px",
+                  overflow: "hidden"
+                }}>
+                 <table
+                    className="table table-bordered mb-0"
+                    style={{
+                      backgroundColor: "#001D31",     // latar belakang tabel
+                      color: "#ffffff",               // teks putih
+                      borderColor: "#36434E",         // border abu gelap
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ backgroundColor: "#011625", color: "#ffffff" }}>
+                        <th style={{ borderColor: "#36434E" , backgroundColor: "#011625", color: "#ffffff"}}>KBLI</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>Kode SBU</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>Nama Usaha</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>NPWP</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>NIB</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>Kabupaten/Kota</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>Subklasifikasi</th>
+                        <th style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentItems.length ? (
+                        currentItems.map((item, index) => (
+                          <tr key={index} style={{ backgroundColor: "#001D31", color: "#ffffff" }}>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff"}}>{item.kbli}</td>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff"}}>{item.kode_sub_klasifikasi}</td>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>{item.nama_perusahaan}</td>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>{item.npwp}</td>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff"}}>{item.nib}</td>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>{item.kota}</td>
+                            <td style={{ borderColor: "#36434E", backgroundColor: "#011625", color: "#ffffff" }}>{item.subklasifikasi}</td>
+                            <td
+                              style={{ borderColor: "#36434E" , backgroundColor: "#011625"}}
+                              className="text-center align-middle"
+                            >
+                              <span
+                                className={`badge ${
+                                  item.status === "aktif"
+                                    ? "bg-success"
+                                    : item.status === "pending"
+                                    ? "bg-warning text-dark"
+                                    : "bg-danger"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan="8"
+                            className="text-center"
+                            style={{
+                              backgroundColor: "#001D31",
+                              color: "#ffffff",
+                              borderColor: "#36434E",
+                            }}
+                          >
+                            Tidak ada data.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               {/* pagination */}
               <div className="w-100 d-flex justify-content-end mt-3">
-                <Pagination className='mb-0'>
+                <Pagination className='mb-0 mb-0 custom-pagination'>
                   <Pagination.Prev
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => prev - 1)}
@@ -431,11 +570,11 @@ const SertifikatView = () => {
       </div>
 
       {/* Modal Tambah Anggota */}
-      <Modal show={showAdd} onHide={handleCloseAdd} size='xl'>
-        <Modal.Header closeButton>
-          <Modal.Title>Tambah Anggota</Modal.Title>
+      <Modal show={showAdd} onHide={handleCloseAdd} size='xl' className='custom-modal-dark'>
+         <Modal.Header closeButton closeVariant="white">
+            <Modal.Title className="text-white">Tambah Anggota</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="text-white">
 
           <div className='row'>
             <Col>
@@ -453,12 +592,12 @@ const SertifikatView = () => {
           <div className='row'>
             <Col>
               <FloatingLabel label="Email" className="mb-3">
-                <Form.Control placeholder='-' name="email" type="email" value={formData.email} onChange={handleChange} />
+                <Form.Control placeholder='' name="email" type="email" value={formData.email} onChange={handleChange} />
               </FloatingLabel>
             </Col>
             <Col>
               <FloatingLabel label="No. Telp" className="mb-3">
-                <Form.Control placeholder='-' name="no_telp" value={formData.no_telp} onChange={handleChange} />
+                <Form.Control placeholder='' name="no_telp" value={formData.no_telp} onChange={handleChange} />
               </FloatingLabel>
             </Col>
           </div>
@@ -466,12 +605,12 @@ const SertifikatView = () => {
           <div className='row'>
             <Col>
               <FloatingLabel label="NPWP" className="mb-3">
-                <Form.Control placeholder='-' name="npwp" value={formData.npwp} onChange={handleChange} />
+                <Form.Control placeholder='' name="npwp" value={formData.npwp} onChange={handleChange} />
               </FloatingLabel>
             </Col>
             <Col>
               <FloatingLabel label="NIB" className="mb-3">
-                <Form.Control placeholder='-' name="nib" value={formData.nib} onChange={handleChange} />
+                <Form.Control placeholder='' name="nib" value={formData.nib} onChange={handleChange} />
               </FloatingLabel>
             </Col>
           </div>
@@ -479,12 +618,12 @@ const SertifikatView = () => {
           <div className='row'>
             <Col>
               <FloatingLabel label="Alamat" className="mb-3">
-                <Form.Control placeholder='-' name="alamat" value={formData.alamat} onChange={handleChange} />
+                <Form.Control placeholder='' name="alamat" value={formData.alamat} onChange={handleChange} />
               </FloatingLabel>
             </Col>
             <Col>
               <FloatingLabel label="Tanggal Pendaftaran" className="mb-3">
-                <Form.Control placeholder='-' name="tanggal_pendaftaran" type="date" value={formData.tanggal_pendaftaran} onChange={handleChange} />
+                <Form.Control placeholder='' name="tanggal_pendaftaran" type="date" value={formData.tanggal_pendaftaran} onChange={handleChange} />
               </FloatingLabel>
             </Col>
           </div>
@@ -492,34 +631,6 @@ const SertifikatView = () => {
           <div className='row'>
 
           </div>
-          
-          {/* <FloatingLabel label="Nama Perusahaan" className="mb-3">
-            <Form.Control name="nama_perusahaan" value={formData.nama_perusahaan} onChange={handleChange} required />
-          </FloatingLabel>
-          <FloatingLabel label="Penanggung Jawab" className="mb-3">
-            <Form.Control name="nama_penanggung_jawab" value={formData.nama_penanggung_jawab} onChange={handleChange} />
-          </FloatingLabel>
-
-          <FloatingLabel label="Email" className="mb-3">
-            <Form.Control name="email" type="email" value={formData.email} onChange={handleChange} />
-          </FloatingLabel>
-          <FloatingLabel label="No. Telp" className="mb-3">
-            <Form.Control name="no_telp" value={formData.no_telp} onChange={handleChange} />
-          </FloatingLabel>
-
-          <FloatingLabel label="NPWP" className="mb-3">
-            <Form.Control name="npwp" value={formData.npwp} onChange={handleChange} />
-          </FloatingLabel>
-          <FloatingLabel label="NIB" className="mb-3">
-            <Form.Control name="nib" value={formData.nib} onChange={handleChange} />
-          </FloatingLabel>
-
-          <FloatingLabel label="Alamat" className="mb-3">
-            <Form.Control name="alamat" value={formData.alamat} onChange={handleChange} />
-          </FloatingLabel>
-          <FloatingLabel label="Tanggal Pendaftaran" className="mb-3">
-            <Form.Control name="tanggal_pendaftaran" type="date" value={formData.tanggal_pendaftaran} onChange={handleChange} />
-          </FloatingLabel> */}
 
           {/* Kota/Kabupaten */}
           <FloatingLabel label="Pilih Kota/Kabupaten" className="mb-3">
@@ -567,7 +678,7 @@ const SertifikatView = () => {
 
           {/* Sub Klasifikasi */}
           <div className="mb-3">
-            <label className="form-label fw-bold">Pilih Sub Klasifikasi</label>
+            <label className="form-label fw-bold text-white">Pilih Sub Klasifikasi</label>
             <Select
               isMulti
               options={filteredSubKlasifikasiOptions.filter(
@@ -578,6 +689,7 @@ const SertifikatView = () => {
                 formData.sub_klasifikasi_ids.includes(opt.value)
               )}
               isDisabled={filteredSubKlasifikasiOptions.length === 0}
+              styles={customSelectStyles} // 👈 Tambahkan ini
               placeholder={
                 selectedKlasifikasiId && selectedTahun
                   ? 'Pilih sub klasifikasi'
@@ -597,14 +709,38 @@ const SertifikatView = () => {
       </Modal>
 
       {/* Modal Edit Placeholder */}
-      <Modal show={showEdit} onHide={handleCloseEdit} centered size="lg">
-        <Modal.Header closeButton><Modal.Title>Edit Subklasifikasi</Modal.Title></Modal.Header>
-        <Modal.Body>
+      <Modal show={showEdit} onHide={handleCloseEdit} centered size="lg" className="custom-modal-dark">
+        <Modal.Header closeButton closeVariant="white">
+          <Modal.Title className="text-white">Edit Subklasifikasi</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body className="text-white">
           <p>Form edit masih placeholder. Bisa dikembangkan sesuai kebutuhan.</p>
         </Modal.Body>
+
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseEdit}>Tutup</Button>
-          <Button variant="primary" onClick={handleSaveEdit}>Simpan</Button>
+          <Button
+            variant="secondary"
+            onClick={handleCloseAdd}
+            style={{
+              backgroundColor: "#36434E",
+              border: "1px solid #36434E",
+              color: "#ffffff",
+            }}
+          >
+            Batal
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleSaveAdd}
+            style={{
+              backgroundColor: "#90B6D1",
+              border: "1px solid #36434E",
+              color: "#001625",
+            }}
+          >
+            Simpan
+          </Button>
         </Modal.Footer>
       </Modal>
     </>

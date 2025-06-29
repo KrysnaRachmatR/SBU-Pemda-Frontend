@@ -14,6 +14,123 @@ body.dark-mode{
   background-color: #001d31!important;
 }
 
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: #011625;
+}
+
+.custom-placeholder-white::placeholder {
+  color: #ffffff !important;
+  opacity: 1; /* agar tidak transparan */
+}
+
+/* InputGroup background dan border */
+.custom-input-group {
+  background-color: #001D31 !important;
+  border: 2px solid #36434E !important;
+  border-bottom: 0 !important;
+  border-top-left-radius: 0.375rem !important;
+  border-top-right-radius: 0.375rem !important;
+}
+
+/* FormControl khusus */
+.custom-input {
+  background-color: #001D31 !important;
+  color: #ffffff !important;
+  border: 1px solid #36434E !important;
+  box-shadow: none !important;
+}
+
+/* Placeholder putih */
+.custom-placeholder-white::placeholder {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* Fokus input tetap gelap */
+.custom-input:focus {
+  border-color: #36434E !important;
+  box-shadow: none !important;
+}
+
+/* Warna dasar pagination item */
+.custom-pagination .page-item .page-link {
+  background-color: #001D31;
+  color: #ffffff;
+  border: 1px solid #36434E;
+}
+
+/* Saat hover */
+.custom-pagination .page-item .page-link:hover {
+  background-color: #042A45;
+  color: #ffffff;
+  border-color: #36434E;
+}
+
+/* Saat aktif (current page) */
+.custom-pagination .page-item.active .page-link {
+  background-color: #ffffff;
+  color: #001D31;
+  border-color: #36434E;
+  font-weight: bold;
+}
+
+/* Saat disabled (awal/akhir) */
+.custom-pagination .page-item.disabled .page-link {
+  background-color: #001D31;
+  color: #888;
+  border-color: #36434E;
+  opacity: 0.6;
+}
+
+/* Modal keseluruhan */
+.custom-modal-dark .modal-content {
+  background-color: #001D31;
+  color: #ffffff;
+  border: 1px solid #36434E;
+}
+
+/* Header */
+.custom-modal-dark .modal-header {
+  background-color: #011625;
+  border-bottom: 1px solid #36434E;
+  color: #ffffff;
+}
+
+/* Input dan select */
+.custom-modal-dark .form-control,
+.custom-modal-dark .form-select {
+  background-color: #001D31;
+  color: #ffffff;
+  border: 1px solid #36434E;
+}
+
+.custom-modal-dark .form-control:focus,
+.custom-modal-dark .form-select:focus {
+  background-color: #001D31;
+  color: #ffffff;
+  border-color: #90B6D1;
+  box-shadow: none;
+}
+
+/* Label floating */
+.custom-modal-dark .form-floating > label {
+  color: #cccccc;
+  background-color: transparent;
+}
+
+/* Placeholder text putih */
+.custom-modal-dark .form-control::placeholder {
+  color: #cccccc;
+}
+
+/* Modal footer */
+.custom-modal-dark .modal-footer {
+  border-top: 1px solid #36434E;
+}
+
+
 .truncate-2{
   max-width: 200px;
   -webkit-line-clamp: 2;

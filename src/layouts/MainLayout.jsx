@@ -8,7 +8,7 @@ const MainLayout = () => {
   return (
     <>
       {!isLoginPage && <Navbar />}
-      <div className="container-fluid mt-4">
+      <div className="container-fluid mt-1 px-0" style={{ backgroundColor: "#011625" }}>
         <Outlet />
       </div>
     </>

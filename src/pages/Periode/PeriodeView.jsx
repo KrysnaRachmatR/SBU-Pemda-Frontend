@@ -147,9 +147,9 @@ const PeriodeView = () => {
         <button className="btn tool-btn btn-sm btn-primary">
           <i className="bi bi-info-lg"></i>
         </button>
-        <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}>
+        {/* <button className="btn tool-btn btn-sm btn-outline-primary" onClick={handleShowEdit}>
           <i className="bi bi-pencil"></i>
-        </button>
+        </button> */}
         <button className="btn tool-btn btn-sm btn-primary" onClick={handleShowAdd}>
           +
         </button>
@@ -158,14 +158,33 @@ const PeriodeView = () => {
       <div className="row">
         {/* Chart Doughnut */}
         <div className="col-md-4">
-          <div className="card">
-            <div className="card-header text-center fw-bold">Status Anggota - Sub Klasifikasi</div>
+         <div
+            className="card"
+            style={{
+              backgroundColor: "#001D31",
+              color: "#ffffff",
+              border: "1px solid #36434E",
+            }}
+          >
+            <div
+              className="card-header text-center fw-bold"
+              style={{
+                backgroundColor: "#011625",
+                borderBottom: "1px solid #36434E",
+                color: "#ffffff",
+              }}
+            >
+              Status Anggota - Sub Klasifikasi
+            </div>
             <div className="card-body">
               <div className="chart-wrapper">
-                {chartData?.datasets && chartData.datasets[0].data.reduce((a, b) => a + b, 0) > 0 ? (
+                {chartData?.datasets &&
+                chartData.datasets[0].data.reduce((a, b) => a + b, 0) > 0 ? (
                   <Doughnut data={chartData} options={options} />
                 ) : (
-                  <p className="text-center">Tidak ada data untuk ditampilkan.</p>
+                  <p className="text-center" style={{ color: "#ffffff" }}>
+                    Tidak ada data untuk ditampilkan.
+                  </p>
                 )}
               </div>
             </div>
@@ -173,17 +192,39 @@ const PeriodeView = () => {
         </div>
 
         {/* Table */}
-        <div className="col-md-8">
-          <InputGroup className="p-3 border border-bottom-0 rounded-top">
+       <div className="col-md-8">
+          <div
+            className="p-3 border border-bottom-0 rounded-top"
+            style={{
+              backgroundColor: "#011625",
+              border: "1px solid #36434E",
+              borderBottom: "none",
+            }}
+          >
+            <InputGroup>
               <FormControl
                 placeholder="Cari Nama Perusahaan"
                 value={querySearch}
                 onChange={(e) => setQuery(e.target.value)}
+                style={{
+                  backgroundColor: "#001D31",
+                  border: "1px solid #36434E",
+                  color: "#ffffff",
+                }}
               />
-          </InputGroup>
-          <table className="table table-bordered">
+            </InputGroup>
+          </div>
+
+         <table
+            className="table table-dark table-bordered table-striped mb-0"
+            style={{
+              backgroundColor: "#001D31",
+              color: "#ffffff",
+              border: "1px solid #36434E",
+            }}
+          >
             <thead>
-              <tr>
+              <tr style={{ backgroundColor: "#011625", color: "#ffffff" }}>
                 <th>Nama Perusahaan</th>
                 <th>Masa Berlaku SBU</th>
                 <th>Tahun KBLI</th>
@@ -198,17 +239,15 @@ const PeriodeView = () => {
                 const itemDate = parseDateDMY(item.date);
                 const isExpired = itemDate <= now;
 
+                const rowClass =
+                  item.status?.toLowerCase().trim() === "pending"
+                    ? "bg-warning text-dark"
+                    : isExpired
+                    ? "bg-danger text-white"
+                    : "";
+
                 return (
-                  <tr
-                    key={index}
-                    className={
-                      item.status?.toLowerCase().trim() === 'pending'
-                        ? 'table-warning'
-                        : isExpired
-                        ? 'table-danger'
-                        : ''
-                    }
-                  >
+                  <tr key={index} className={rowClass}>
                     <td className="single-line">{item.nama}</td>
                     <td className="single-line">{item.date}</td>
                     <td>{item.tahun}</td>
@@ -220,23 +259,21 @@ const PeriodeView = () => {
               })}
             </tbody>
           </table>
-
           {/* pagination */}
           <div className="w-100 d-flex justify-content-end mt-3">
-            <Pagination className='mb-0'>
+            <Pagination className="mb-0 custom-pagination">
               <Pagination.Prev
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => prev - 1)}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
               />
 
-              {/* Tampilkan halaman pertama */}
               <Pagination.Item
                 active={currentPage === 1}
                 onClick={() => setCurrentPage(1)}
               >
-                {1}
+                1
               </Pagination.Item>
-              {/* Tampilkan halaman 2 dan 3 jika user sedang di halaman tengah */}
+
               {currentPage > 3 && <Pagination.Ellipsis disabled />}
               {[...Array(totalPages)].slice(1, -1).map((_, i) => {
                 const page = i + 2;
@@ -255,7 +292,6 @@ const PeriodeView = () => {
               })}
               {currentPage < totalPages - 2 && <Pagination.Ellipsis disabled />}
 
-              {/* Tampilkan halaman terakhir jika lebih dari 1 */}
               {totalPages > 1 && (
                 <Pagination.Item
                   active={currentPage === totalPages}
@@ -267,7 +303,7 @@ const PeriodeView = () => {
 
               <Pagination.Next
                 disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => prev + 1)}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
               />
             </Pagination>
           </div>
