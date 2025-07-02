@@ -228,3 +228,10 @@ body, html {
   font-size: 24px;
   padding: 16px 12px;
 }
+
+.custom-dark-modal .modal-content {
+  background-color: #011625;
+  border: 1px solid #ffffff;
+  border-radius: 16px;
+  color: #ffffff;
+}

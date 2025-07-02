@@ -7,6 +7,8 @@ import {
   getKotaKabupaten,
   postAnggota,
   downloadSertifikatDataService,
+  editSertifikat,
+  getAnggota,
 } from './sertifikatService';
 
 /**
@@ -192,5 +194,25 @@ export const handleDownloadSertifikat = async () => {
   } catch (error) {
     console.error('Gagal mengunduh file Excel:', error);
     alert('Gagal mengunduh file Excel.');
+  }
+};
+
+export const updateSertifikat = async (id, formData) => {
+  try {
+    const result = await editSertifikat(id, formData); // pastikan editAnggota juga diimport
+    return result;
+  } catch (err) {
+    console.error("Gagal update anggota", err);
+    throw err;
+  }
+};
+
+export const getAnggotasList = async () => {
+  try {
+    const result = await getAnggota();
+    return result.data;
+  } catch (err) {
+    console.error("Gagal fetch data anggota", err);
+    return [];
   }
 };

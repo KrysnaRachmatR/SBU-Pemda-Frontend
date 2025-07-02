@@ -105,3 +105,30 @@ export const downloadSertifikatDataService = async () => {
 
   return response.data; // hanya kembalikan blob-nya
 };
+
+export const editSertifikat = async (id, data) => {
+  try {
+    const token = getToken();
+    const response = await api.put(`/add-anggota/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const errMessage = error?.response?.data?.message || error.message || 'Terjadi Kesalahan';
+    console.error("Gagal mengedit Sertifikat:", errMessage);
+    throw error;
+  }
+};
+
+export const getAnggota = async () => {
+  const token = getToken();
+  const response = await api.get('/anggota', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response.data;
+};

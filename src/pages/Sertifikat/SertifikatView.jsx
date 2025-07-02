@@ -8,6 +8,8 @@ import {
   fetchKlasifikasi,
   fetchTahunSubKlasifikasi,
   handleDownloadSertifikat,
+  getAnggotasList, 
+  updateSertifikat,
 } from './sertifikatController';
 
 import { Dropdown, Badge, Modal, Col, FloatingLabel, Form, Button, Pagination, InputGroup, FormControl } from 'react-bootstrap';
@@ -33,6 +35,8 @@ const SertifikatView = () => {
   const [filteredSubKlasifikasiOptions, setFilteredSubKlasifikasiOptions] = useState([]);
   const [selectedKlasifikasiId, setSelectedKlasifikasiId] = useState('');
   const [selectedSubKlasifikasiIds, setSelectedSubKlasifikasiIds] = useState([]);
+  const [anggotaOptions, setAnggotaOptions] = useState([]);
+  const [selectedAnggotaId, setSelectedAnggotaId] = useState('');
   
   const [chartData, setChartData] = useState({ labels: [], datasets: [], sbuCode: [], sbuClass: [] });
   const [tableData, setTableData] = useState([]);
@@ -144,11 +148,25 @@ const SertifikatView = () => {
     });
   };
 
-  const handleSaveEdit = () => {
+    const handleSaveEdit = () => {
+    if (!selectedAnggotaId) {
+      alert("Pilih anggota terlebih dahulu.");
+      return;
+    }
+
     confirm({
       message: 'Apakah kamu yakin ingin menyimpan perubahan?',
-      onYes: () => {
-        handleCloseEdit();
+      onYes: async () => {
+        try {
+          await updateSertifikat(selectedAnggotaId, formData);
+          handleCloseEdit();
+          resetForm();
+          await fetchSertifikat(setChartData, setTableData);
+          alert("Data berhasil diperbarui.");
+        } catch (error) {
+          console.error("Gagal memperbarui data:", error);
+          alert("Gagal memperbarui data.");
+        }
       },
     });
   };
@@ -169,6 +187,7 @@ const SertifikatView = () => {
         await fetchSertifikat(setChartData, setTableData);
         await fetchKotaKabupaten(setKotaOptions);
         await fetchKlasifikasi(setKlasifikasiOptions);
+        await getAnggotasList().then(setAnggotaOptions);
       } catch (error) {
         console.error('Error fetching initial data:', error);
       }
@@ -710,39 +729,155 @@ const SertifikatView = () => {
 
       {/* Modal Edit Placeholder */}
       <Modal show={showEdit} onHide={handleCloseEdit} centered size="lg" className="custom-modal-dark">
-        <Modal.Header closeButton closeVariant="white">
-          <Modal.Title className="text-white">Edit Subklasifikasi</Modal.Title>
-        </Modal.Header>
+  <Modal.Header closeButton closeVariant="white">
+    <Modal.Title className="text-white">Edit Data Anggota</Modal.Title>
+  </Modal.Header>
 
-        <Modal.Body className="text-white">
-          <p>Form edit masih placeholder. Bisa dikembangkan sesuai kebutuhan.</p>
-        </Modal.Body>
+  <Modal.Body className="text-white">
+    {/* Dropdown Pilih Anggota */}
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">Pilih Anggota</Form.Label>
+      <Form.Select
+        value={selectedAnggotaId}
+        onChange={(e) => {
+          const id = e.target.value;
+          setSelectedAnggotaId(id);
+          const selected = anggotaOptions.find(a => a.id == id);
+          if (selected) {
+            setFormData({
+              nama_perusahaan: selected.nama_perusahaan || '',
+              nama_penanggung_jawab: selected.nama_penanggung_jawab || '',
+              email: selected.email || '',
+              no_telp: selected.no_telp || '',
+              npwp: selected.npwp || '',
+              nib: selected.nib || '',
+              alamat: selected.alamat || '',
+              kota_kabupaten_id: kotaOptions.find(k => k.nama === selected.kota_kabupaten)?.id || '',
+              sub_klasifikasi_ids: [], // bisa diisi kalau kamu mau auto-load juga
+            });
+          }
+        }}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      >
+        <option value="">-- Pilih Nama Perusahaan --</option>
+        {anggotaOptions.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.nama_perusahaan}
+          </option>
+        ))}
+      </Form.Select>
+    </Form.Group>
 
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={handleCloseAdd}
-            style={{
-              backgroundColor: "#36434E",
-              border: "1px solid #36434E",
-              color: "#ffffff",
-            }}
-          >
-            Batal
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSaveAdd}
-            style={{
-              backgroundColor: "#90B6D1",
-              border: "1px solid #36434E",
-              color: "#001625",
-            }}
-          >
-            Simpan
-          </Button>
-        </Modal.Footer>
-      </Modal>
+    {/* Form Fields */}
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">Nama Penanggung Jawab</Form.Label>
+      <Form.Control
+        type="text"
+        name="nama_penanggung_jawab"
+        value={formData.nama_penanggung_jawab}
+        onChange={handleChange}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">Email</Form.Label>
+      <Form.Control
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">No. Telepon</Form.Label>
+      <Form.Control
+        type="text"
+        name="no_telp"
+        value={formData.no_telp}
+        onChange={handleChange}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">NPWP</Form.Label>
+      <Form.Control
+        type="text"
+        name="npwp"
+        value={formData.npwp}
+        onChange={handleChange}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">NIB</Form.Label>
+      <Form.Control
+        type="text"
+        name="nib"
+        value={formData.nib}
+        onChange={handleChange}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">Alamat</Form.Label>
+      <Form.Control
+        as="textarea"
+        name="alamat"
+        value={formData.alamat}
+        onChange={handleChange}
+        rows={3}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label className="text-white">Kota/Kabupaten</Form.Label>
+      <Form.Select
+        name="kota_kabupaten_id"
+        value={formData.kota_kabupaten_id}
+        onChange={handleChange}
+        style={{ backgroundColor: "#011625", color: "#fff", borderColor: "#36434E" }}
+      >
+        <option value="">-- Pilih Kota/Kabupaten --</option>
+        {kotaOptions.map(k => (
+          <option key={k.id} value={k.id}>{k.nama}</option>
+        ))}
+      </Form.Select>
+    </Form.Group>
+  </Modal.Body>
+
+  <Modal.Footer>
+    <Button
+      variant="secondary"
+      onClick={handleCloseEdit}
+      style={{
+        backgroundColor: "#36434E",
+        border: "1px solid #36434E",
+        color: "#ffffff",
+      }}
+    >
+      Batal
+    </Button>
+    <Button
+      variant="primary"
+      onClick={handleSaveEdit}
+      style={{
+        backgroundColor: "#90B6D1",
+        border: "1px solid #36434E",
+        color: "#001625",
+      }}
+    >
+      Simpan
+    </Button>
+  </Modal.Footer>
+</Modal>
+
     </>
   );
 };

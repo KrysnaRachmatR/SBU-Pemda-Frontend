@@ -311,16 +311,32 @@ const PeriodeView = () => {
       </div>
 
       {/* Modal Tambah */}
-      <Modal show={showAdd} onHide={handleCloseAdd} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Tambah Masa Berlaku SBU</Modal.Title>
+      <Modal
+        show={showAdd}
+        onHide={handleCloseAdd}
+        centered
+        size="md"
+        dialogClassName="custom-dark-modal"
+      >
+        <Modal.Header closeButton closeVariant="white" className="border-0">
+          <Modal.Title className="text-white">Tambah Masa Berlaku SBU</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
-          <FloatingLabel controlId="floatingAnggotaId" label="Pilih Nama Perusahaan" className="mb-3">
+          <FloatingLabel
+            controlId="floatingAnggotaId"
+            label="Pilih Nama Perusahaan"
+            className="mb-3"
+          >
             <Form.Select
               name="anggota_id"
               value={formData.anggota_id}
               onChange={handleAnggotaChange}
+              style={{
+                backgroundColor: "#011625",
+                color: "#fff",
+                border: "1px solid #ffffff",
+              }}
             >
               <option value="">-- Pilih Anggota --</option>
               {anggotaList.map((anggota) => (
@@ -331,12 +347,21 @@ const PeriodeView = () => {
             </Form.Select>
           </FloatingLabel>
 
-          <FloatingLabel controlId="floatingSubKlasifikasiId" label="Pilih Sub Klasifikasi" className="mb-3">
+          <FloatingLabel
+            controlId="floatingSubKlasifikasiId"
+            label="Pilih Sub Klasifikasi"
+            className="mb-3"
+          >
             <Form.Select
               name="sub_klasifikasi_id"
               value={formData.sub_klasifikasi_id}
               onChange={handleInputChange}
               disabled={!formData.anggota_id}
+              style={{
+                backgroundColor: "#011625",
+                color: "#fff",
+                border: "1px solid #ffffff",
+              }}
             >
               <option value="">-- Pilih Sub Klasifikasi --</option>
               {subKlasifikasiList.map((sub) => (
@@ -346,20 +371,47 @@ const PeriodeView = () => {
               ))}
             </Form.Select>
           </FloatingLabel>
-          <FloatingLabel controlId="floatingTanggal" label="Tanggal Pendaftaran" className="mb-3">
+
+          <FloatingLabel
+            controlId="floatingTanggal"
+            label="Tanggal Pendaftaran"
+            className="mb-3"
+          >
             <Form.Control
               type="date"
               name="tanggal_pendaftaran"
               value={formData.tanggal_pendaftaran}
               onChange={handleInputChange}
+              style={{
+                backgroundColor: "#011625",
+                color: "#fff",
+                border: "1px solid #ffffff",
+              }}
             />
           </FloatingLabel>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary me-auto" onClick={handleCloseAdd}>
+
+        <Modal.Footer className="border-0">
+          <Button
+            variant="secondary"
+            onClick={handleCloseAdd}
+            style={{
+              backgroundColor: "#36434E",
+              border: "1px solid #ffffff",
+              color: "#ffffff",
+            }}
+          >
             Tutup
           </Button>
-          <Button variant="primary" onClick={handleSaveAdd}>
+          <Button
+            variant="primary"
+            onClick={handleSaveAdd}
+            style={{
+              backgroundColor: "#90B6D1",
+              border: "1px solid #ffffff",
+              color: "#001625",
+            }}
+          >
             Simpan
           </Button>
         </Modal.Footer>
